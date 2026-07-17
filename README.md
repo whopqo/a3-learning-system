@@ -10,9 +10,10 @@
 
 ```bash
 pip install -r requirements.txt
-python knowledge_base/build_kb.py   # 首次必跑
-python run.py                        # 浏览器自动打开 http://localhost:8000
+python knowledge_base/build_kb.py
+python run.py                     # ↑ 首次需联网下载模型，等几分钟
 ```
+浏览器自动打开 → 设置 → 模型配置 → 填密钥 → 开始使用
 
 Python ≥ 3.10，推荐用 conda。Key 写在项目根目录 `.env` 文件里（参考 `.env.example`），**不会被提交到 GitHub**。
 

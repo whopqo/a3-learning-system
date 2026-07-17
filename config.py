@@ -65,7 +65,7 @@ LLM_MODEL = _cfg["model"]
 # 没有配置 Key 的话，打印清楚报错（Ollama 本地模型不需要 Key）
 if not LLM_API_KEY and LLM_PROVIDER != "ollama":
     env_name = f"{LLM_PROVIDER.upper()}_API_KEY"
-    print(f"⚠️ 未设置 {env_name} 环境变量！")
+    print(f"[提示] 未设置 {env_name}，可以启动后在网页的 设置->模型配置 里填密钥")
     print(f"   请在系统环境变量中设置 {env_name}，或者在项目根目录创建 .env 文件")
     print(f"   参考 .env.example 文件了解需要哪些变量")
 
