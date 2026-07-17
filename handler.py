@@ -279,6 +279,53 @@ class LearningSystem:
 
     # 意图分发 → 委托给 AgentGraph
 
+    @staticmethod
+    def _cn_num(s: str) -> int | None:
+        """中文数字→阿拉伯，做归一化用"""
+        m = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10,
+             "十一":11,"十二":12,"十三":13,"十四":14,"十五":15,"十六":16}
+        return m.get(s)
+
+    @staticmethod
+    def _normalize_topic(topic: str) -> str:
+        """用户说'第一章/第1章/绪论'全部统一成'第1章 绪论'，资源库章节不会出现重复条目"""
+        topic = topic.strip()
+        if not topic:
+            return topic
+        import re
+        # 从知识图谱找对应的标准章节名
+        from utils.knowledge_graph import get_knowledge_graph
+        kg = get_knowledge_graph()
+        nodes = kg.get_all_nodes()
+        # 先试完全匹配
+        for n in nodes:
+            name = n.get("name", "")
+            if topic == name or topic.lstrip("第").startswith(name):
+                return name
+        # 拆数字——"第一章" "第1章" "ch1"
+        num = None
+        m = re.search(r'(\d+)', topic)
+        if m:
+            num = int(m.group(1))
+        else:
+            cn = re.search(r'第([一二三四五六七八九十]+)章', topic)
+            if cn:
+                num = LearningSystem._cn_num(cn.group(1))
+        if num and 1 <= num <= 17:
+            for n in nodes:
+                if n.get("id") == f"ch{num}":
+                    return n.get("name", topic)
+                # 也试名称匹配
+                nm = n.get("name", "")
+                if re.search(rf'第{num}章', nm):
+                    return nm
+        # 纯章名匹配（"绪论" "决策树"）
+        for n in nodes:
+            nm = n.get("name", "")
+            if topic in nm and len(topic) >= 3:
+                return nm
+        return topic
+
     def _dispatch_intent(self, intent: str, msg: str, session: dict,
                          classification: dict, result: dict):
         profile = session.get("profile") or {}
@@ -424,7 +471,6 @@ class LearningSystem:
             if topic.startswith(p) and len(topic)-len(p)>=1: topic=topic[len(p):].strip(); break
         for s in ["的学习资料","的资料","的学习资源","的资源","学习资料","学习资源","资料","资源","的学习","学习","的练习题","的题","练习题"]:
             if topic.endswith(s) and len(topic)-len(s)>=2: topic=topic[:-len(s)].strip(); break
-        # 优先用分类结果里的 topic（已在分类LLM调用中提取）
         class_topic = (classification or {}).get("topic","").strip()
         if class_topic and len(class_topic) >= 2: topic = class_topic
         elif (not topic or len(topic)<2):
@@ -434,7 +480,8 @@ class LearningSystem:
         if not topic or len(topic)<2:
             flat = self._flat_steps(session.get("learning_path",{}))
             topic = flat[0]["name"] if flat else "机器学习基础"
-        return topic
+        # 章节名归一化——"第一章" "第1章" "ch1" "绪论" 全映射到标准名 "第1章 绪论"
+        return self._normalize_topic(topic)
 
     # 路径规划
 

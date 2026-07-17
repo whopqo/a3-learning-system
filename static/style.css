@@ -83,7 +83,6 @@ main{margin-top:54px;flex:1}
 .dstat{display:inline-block;padding:4px 14px;border-radius:14px;font-size:.78rem;font-weight:700}.dstat.run{background:#eef5ef;color:var(--sage)}.dstat.off{background:#fef5f3;color:var(--rust)}
 #model-sel{max-width:170px;padding:8px 10px;border:1px solid var(--border);border-radius:18px;font-size:.78rem;background:var(--paper);color:var(--muted);cursor:pointer;flex-shrink:0}#model-sel:focus{border-color:var(--accent)}
 /* 章节依赖图：SVG按viewBox等比放大，别被mermaid默认的max-width压小 */
-#kb-graph svg{min-width:1150px!important;max-width:none!important;height:auto}
-#kb-graph-big svg{min-width:1700px!important;max-width:none!important;height:auto}
+#kb-graph{width:100%;height:460px}
 /* Markmap 思维导图：SVG 撑满容器，否则缩在左上角一小块 */
 .markmap{width:100%}.markmap>svg{width:100%!important;height:100%!important;display:block}

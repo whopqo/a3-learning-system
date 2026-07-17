@@ -15,7 +15,7 @@ from config import PROJ_ROOT
 # api 字段是协议格式: openai(默认,/chat/completions) 或 anthropic(/messages)
 PRESETS = {
     "deepseek": {"label": "DeepSeek", "base_url": "https://api.deepseek.com/v1",
-                 "known_models": ["deepseek-v4-flash", "deepseek-chat", "deepseek-reasoner"]},
+                 "known_models": ["deepseek-v4-flash", "deepseek-chat", "deepseek-reasoner", "deepseek-v4-pro"]},
     "spark": {"label": "讯飞星火", "base_url": "https://spark-api-open.xf-yun.com/v1",
               "known_models": ["lite", "generalv3", "generalv3.5", "4.0Ultra"]},
     "qwen": {"label": "通义千问", "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",

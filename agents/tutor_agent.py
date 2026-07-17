@@ -159,12 +159,12 @@ class TutorAgent(BaseAgent):
 知识库参考（术语从这里取）：
 {kb_ref[:2000]}
 
-把核心步骤或子概念串成一条推理链，返回 JSON：
+把核心步骤或子概念串成一条推理链。边上如果能有简短文字描述就更好（如 B --计算--> C 这种），需要8-14个节点，标注主要内容。返回 JSON：
 {{
-  "nodes": [{{"id": "A", "label": "节点文字(8字内)"}}, {{"id": "B", ...}}, ...],
+  "nodes": [{{"id": "A", "label": "节点文字(10字内)"}}, {{"id": "B", "label": "..."}}, ...],
   "edges": [["A", "B"], ["B", "C"], ...]
 }}
-要求：5-10 个节点，id 用大写字母，edges 里的 id 必须在 nodes 里存在。节点文字纯中文，8 字以内。
+要求：id 用大写字母，edges 里的 id 必须在 nodes 里存在。节点文字纯中文。写清楚节点之间的关系和流动。
 只输出纯 JSON，连 ``` 都不要。"""
 
         data = self._call_llm_json(prompt, temperature=0.3, max_tokens=1200, fallback={})
@@ -187,12 +187,16 @@ class TutorAgent(BaseAgent):
             if nid and label:
                 ids.add(nid)
                 lines.append(f'{nid}["{label}"]')
-        for e in edges[:20]:
+        for e in edges[:22]:
             if isinstance(e, (list, tuple)) and len(e) >= 2:
                 a = re.sub(r'[^A-Za-z0-9_]', '', str(e[0]))[:8]
                 b = re.sub(r'[^A-Za-z0-9_]', '', str(e[1]))[:8]
                 if a in ids and b in ids and a != b:
-                    lines.append(f'{a} --> {b}')
+                    lbl = re.sub(r'[\[\]{}()（）"\'`<>#&|\n]', ' ', str(e[2] or "")).strip() if len(e) >= 3 else ""
+                    if lbl and len(lbl) <= 12:
+                        lines.append(f'{a} -- {lbl} --> {b}')
+                    else:
+                        lines.append(f'{a} --> {b}')
         # 得有节点也得有线，否则不如不给
         if len(lines) < 4 or not any('-->' in l for l in lines):
             return ""
