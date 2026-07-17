@@ -1,0 +1,83 @@
+## 附录 A 矩阵
+标量：单个数值，小写普通字母如 a,b,c；
+向量：列向量，小写粗体 \(\boldsymbol{x}=(x_1;x_2;...;x_d)\)；行向量写作 \(\boldsymbol{x}^\mathrm{T}\)；
+矩阵：大写粗体 \(\boldsymbol{A}\)，m行d维矩阵 \(\boldsymbol{A}\in \mathbb{R}^{m\times d}\)，元素\(A_{ij}\)代表第i行第j列；
+单位矩阵 \(\boldsymbol{I}\)：方阵，对角线全为 1，其余元素 0；满足 \(\boldsymbol{AI}=\boldsymbol{IA}=\boldsymbol{A}\)；
+零矩阵：所有元素均为 0。
+
+### A.2 基础运算转置\((\boldsymbol{A}^\mathrm{T})_{ij}=A_{ji}\)；
+性质：\((\boldsymbol{A}^\mathrm{T})^\mathrm{T}=\boldsymbol{A},\ (\boldsymbol{A+B})^\mathrm{T}=\boldsymbol{A}^\mathrm{T}+\boldsymbol{B}^\mathrm{T},\ (\boldsymbol{AB})^\mathrm{T}=\boldsymbol{B}^\mathrm{T}\boldsymbol{A}^\mathrm{T}\)。矩阵加法、数乘同维度矩阵可逐元素相加；标量乘矩阵每个元素：\((k\boldsymbol{A})_{ij}=kA_{ij}\)。矩阵乘法\(\boldsymbol{A}\in\mathbb{R}^{m\times n},\boldsymbol{B}\in\mathbb{R}^{n\times p}\)，乘积 \(\boldsymbol{C}=\boldsymbol{AB}\in\mathbb{R}^{m\times p}\)
+\(C_{ij}=\sum_{k=1}^n A_{ik}B_{kj}\)；
+矩阵乘法不满足交换律 \(\boldsymbol{AB}\neq\boldsymbol{BA}\)。内积两个同维度列向量 \(\boldsymbol{x},\boldsymbol{y}\)，内积 \(\boldsymbol{x}^\mathrm{T}\boldsymbol{y}\)，结果为标量；
+内积为 0 代表向量正交。A.3 逆矩阵与行列式
+方阵可逆条件：行列式\(\det(\boldsymbol{A})\neq0\)；
+逆矩阵满足 \(\boldsymbol{A}^{-1}\boldsymbol{A}=\boldsymbol{A}\boldsymbol{A}^{-1}=\boldsymbol{I}\)；
+性质：\((\boldsymbol{AB})^{-1}=\boldsymbol{B}^{-1}\boldsymbol{A}^{-1},\ (\boldsymbol{A}^\mathrm{T})^{-1}=(\boldsymbol{A}^{-1})^\mathrm{T}\)。
+奇异矩阵：行列式为 0，不存在逆；
+分块矩阵：大矩阵拆分子矩阵简化运算，线性回归增广矩阵为典型分块应用。
+
+### A.4 特征值与特征向量对方阵\(\boldsymbol{A}\)，若存在标量\(\lambda\)、非零向量\(\boldsymbol{x}\)满足 \(\boldsymbol{A}\boldsymbol{x}=\lambda \boldsymbol{x}\)；
+\(\lambda\)为特征值，\(\boldsymbol{x}\)为对应特征向量；
+实对称矩阵所有特征值为实数，特征向量两两正交。A.5 奇异值分解 SVD任意矩阵\(\boldsymbol{A}\in\mathbb{R}^{m\times d}\)可分解：
+\(\boldsymbol{A}=\boldsymbol{U}\boldsymbol{\Sigma}\boldsymbol{V}^\mathrm{T}\)
+\(\boldsymbol{U}\)：m阶正交矩阵（左奇异向量）；
+\(\boldsymbol{\Sigma}\)：对角矩阵，对角线为奇异值（非负降序排列）；
+\(\boldsymbol{V}\)：d阶正交矩阵（右奇异向量）；
+用途：PCA、降维、矩阵近似、伪逆求解。A.6 正定 / 半正定矩阵对称方阵\(\boldsymbol{A}\)：
+正定：对任意非零向量\(\boldsymbol{x}\)，\(\boldsymbol{x}^\mathrm{T}\boldsymbol{A}\boldsymbol{x}>0\)，所有特征值 > 0，可逆；
+半正定：\(\boldsymbol{x}^\mathrm{T}\boldsymbol{A}\boldsymbol{x}\ge0\)，特征值≥0；
+协方差矩阵、核矩阵均为半正定矩阵。
+
+### A.7 迹方阵迹\(\mathrm{tr}(\boldsymbol{A})\)等于对角线元素之和，等于全部特征值之和；
+常用性质：\(\mathrm{tr}(\boldsymbol{A})=\mathrm{tr}(\boldsymbol{A}^\mathrm{T}),\ \mathrm{tr}(\boldsymbol{AB})=\mathrm{tr}(\boldsymbol{BA})\)。附录 B 优化（完整详细纯文本）B.1 导数基础单变量导数函数\(f(x)\)导数 \(f'(x)=\lim\limits_{\Delta x\to0}\frac{f(x+\Delta x)-f(x)}{\Delta x}\)；
+极值点一阶导数为 0。偏导数、梯度多元函数\(f(x_1,...,x_d)\)，对\(x_j\)求偏导；
+梯度\(\nabla f(\boldsymbol{x})\)为偏导数构成列向量，指向函数上升最快方向；
+负梯度为下降最快方向，梯度下降算法核心依据。矩阵求导常用公式：
+\(\nabla_\boldsymbol{w} \boldsymbol{w}^\mathrm{T}\boldsymbol{A}\boldsymbol{w}=2\boldsymbol{A}\boldsymbol{w}\)（\(\boldsymbol{A}\)对称）；
+\(\nabla_\boldsymbol{w} \|\boldsymbol{w}\|_2^2=2\boldsymbol{w}\)。
+
+### B.2 凸集与凸函数
+凸集：集合内任意两点连线全部包含在集合内；
+凸函数：定义域为凸集，任意两点满足
+\(f(t\boldsymbol{x}+(1-t)\boldsymbol{y})\le t f(\boldsymbol{x})+(1-t)f(\boldsymbol{y}),\ t\in[0,1]\)；
+凸函数局部极小等于全局极小，无局部最优陷阱，逻辑回归、SVM 损失均为凸函数。
+
+### B.3 无约束优化梯度下降 GD迭代更新：\(\boldsymbol{w}^{t+1}=\boldsymbol{w}^t - \eta \nabla f(\boldsymbol{w}^t)\)
+\(\eta\)：学习率，过大震荡、过小收敛缓慢。牛顿法利用二阶海森矩阵\(\boldsymbol{H}\)（二阶偏导矩阵），更新式：
+\(\boldsymbol{w}^{t+1}=\boldsymbol{w}^t - \boldsymbol{H}^{-1}\nabla f(\boldsymbol{w}^t)\)
+收敛速度远快梯度，但海森求逆计算开销大。B.4 带约束优化：拉格朗日乘子等式约束最小化\(f(\boldsymbol{w})\)，约束\(g(\boldsymbol{w})=0\)；
+构造拉格朗日函数 \(L(\boldsymbol{w},\lambda)=f(\boldsymbol{w})+\lambda g(\boldsymbol{w})\)，令梯度为 0 求解。不等式约束 KKT 条件最小化\(f(\boldsymbol{w})\)，约束\(g_i(\boldsymbol{w})\le0,\ h_j(\boldsymbol{w})=0\)；
+拉格朗日：\(L=f+\sum\lambda_i g_i+\sum\mu_j h_j\)；
+KKT 核心条件：梯度为 0、约束满足、松弛互补\(\lambda_i g_i=0\)；
+SVM 对偶推导完全依赖 KKT 条件。B.5 近端梯度下降 PGD针对 L1 正则不可导损失，拆分光滑损失 + L1 惩罚，分步迭代，LASSO 标准求解算法。B.6 坐标下降逐维度固定其余参数，仅优化单个变量，循环遍历所有维度；实现简单，稀疏模型常用。附录 C 概率分布（完整详细纯文本）C.1 基础概念
+随机变量：离散 / 连续；
+离散：概率质量函数\(P(X=x)\)，求和 = 1；
+连续：概率密度\(p(x)\)，全域积分 = 1；
+期望\(E[X]\)、方差\(\mathrm{Var}(X)=E[X^2]-(E[X])^2\)；
+独立变量：\(p(x,y)=p(x)p(y)\)。
+
+### C.2 离散分布
+伯努利分布：单次 0-1 试验，\(P(X=1)=\mu,\ P(X=0)=1-\mu\)；期望\(\mu\)；
+二项分布：n次独立伯努利试验；
+多项分布：多类别离散采样，朴素贝叶斯文本常用；
+分类分布：多项单次采样。
+
+### C.3 连续分布
+标准均匀：区间内概率均等；
+一元高斯（正态）分布：
+\(p(x)=\frac{1}{\sqrt{2\pi}\sigma}\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\)；
+\(\mu\)均值，\(\sigma^2\)方差；
+多元高斯：向量形式，协方差矩阵控制变量相关性。
+狄利克雷分布：多项分布共轭先验，LDA 话题模型核心分布。
+
+### C.4 共轭先验后验分布与先验属于同一系列分布，简化 EM、贝叶斯估计计算；
+高斯均值共轭高斯、多项共轭狄利克雷。后记全书 16 章覆盖机器学习基础、经典模型、前沿进阶内容，兼顾理论推导与工程直观解释。写作初衷为适配国内本科、研究生课堂，平衡数学门槛与知识点完整性。
+机器学习分为符号主义、连接主义、统计学习三大发展脉络，三者并非对立，而是互相补充。当下深度学习热度高涨，但统计学习理论、传统模型仍是底层根基，不可忽视。
+书中存在疏漏与不足，欢迎读者来信指正；同时推荐读者跟进顶会期刊论文，跟进半监督、迁移、深度学习、可信 AI 等前沿方向。
+感谢国内机器学习同行、本书审稿人、出版社编辑，以及多年来课堂上给予反馈的学生。
+周志华索引说明索引为全书术语、算法、人名检索对照表，按中文拼音 / 英文首字母排序，每条术语标注对应章节页码，包含：
+基础概念：泛化、过拟合、归纳偏好、版本空间等；
+全部算法：ID3、C4.5、SVM、BP、AdaBoost、K-Means、LDA、Q-learning 等；
+理论名词：VC 维、NFL 定理、PAC、AUC、ROC、KKT 等；
+学者人名：Vapnik、Mitchell、Quinlan、Hinton 等；
+作用：快速定位书中定义、公式、例题位置，方便复习查阅。

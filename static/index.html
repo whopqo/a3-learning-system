@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>EduSynth · AI学习助手</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>mermaid.initialize({startOnLoad:false,theme:'neutral',securityLevel:'loose',suppressErrorRendering:true});</script>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav>
+  <div class="brand"><span>E</span>EduSynth</div>
+  <div class="tabs" id="nav-tabs"></div>
+  <div class="right">
+    <span class="dot" id="sdot"></span>
+    <button onclick="resetAll()" title="重新开始">重置</button>
+  </div>
+</nav>
+<main>
+<div class="page show" id="page-chat"><div class="chat-scroll" id="chat-scroll"></div><div class="chat-bar"><select id="model-sel" title="选择本次对话用的模型" onchange="pickModel(this.value)"><option value="">默认模型</option></select><button id="skill-btn" title="选择教学模式" onclick="toggleSkillPop()" style="padding:8px 12px;border:1px solid var(--border);border-radius:18px;font-size:.78rem;background:var(--paper);color:var(--muted);flex-shrink:0">模式</button><div id="skill-pop" style="display:none;position:absolute;bottom:64px;left:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:12px 14px;z-index:50;max-width:320px"></div><input type="text" id="msg-in" placeholder="说说你的学习情况..." onkeydown="if(event.key==='Enter')send()"><button class="stop" id="stop-btn" onclick="stopStream()" title="停止">■</button><button class="send" id="send-btn" onclick="send()">&uarr;</button></div></div>
+<div class="page" id="page-profile"><div class="pi" id="profile-el"></div></div>
+<div class="page" id="page-path"><div class="pi" id="path-el"></div></div>
+<div class="page" id="page-resources"><div class="pi" id="resources-el"></div></div>
+<div class="page" id="page-knowledge"><div class="pi" id="knowledge-el"></div></div>
+<div class="page" id="page-records"><div class="pi" id="records-el"></div></div>
+<div class="page" id="page-settings"><div class="pi" id="settings-el"></div></div>
+</main>
+<div class="modal" id="modal"><div class="modal-inner"><button class="modal-close" onclick="closeModal()">&times;</button><div id="modal-content"></div></div></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

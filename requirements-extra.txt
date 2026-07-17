@@ -1,0 +1,4 @@
+# 可选依赖 —— 仅当需要视频渲染功能时安装
+# 安装前确保系统已装 FFmpeg(brew install ffmpeg / apt install ffmpeg)
+# imageio-ffmpeg>=0.5.0
+# manim>=0.18.0
