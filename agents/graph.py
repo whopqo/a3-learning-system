@@ -224,15 +224,20 @@ class AgentGraph:
         tasks = [(key, label, gen_fn) for key, label, gen_fn, _ in gens
                  if not exercises_only or key == "exercises"]
 
-        # 并行生成：max_workers=4 避免触发 API 限流
+        # 并行生成：8个任务一轮跑完。子线程默认不继承contextvar，
+        # 要手动复制上下文，不然聊天框选的模型和教学模式在这里会失效
         from concurrent.futures import ThreadPoolExecutor, as_completed
+        import contextvars
         idx = 0
-        with ThreadPoolExecutor(max_workers=4) as pool:
-            futures = {pool.submit(gen_fn): (key, label) for key, label, gen_fn in tasks}
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {}
+            for key, label, gen_fn in tasks:
+                cv = contextvars.copy_context()
+                futures[pool.submit(cv.run, gen_fn)] = (key, label)
             for f in as_completed(futures):
                 key, label = futures[f]
                 idx += 1
-                yield {"type":"progress","step":idx+1,"total":total,"label":f"正在生成{label}"}
+                yield {"type":"progress","step":idx+1,"total":total,"label":f"已完成{label}"}
                 try:
                     resources[key] = f.result()
                 except Exception:

@@ -80,7 +80,7 @@ DEEPSEEK_API_KEY=sk-你的密钥
 | 第一次运行很慢 | 首次要下载约 100MB 向量模型，之后有缓存秒开 |
 | 提示"知识库未构建" | 运行 `python knowledge_base/build_kb.py` |
 | 聊天没反应/报错 | 设置→模型配置 点「测试连接」检查密钥；设置→系统日志 看 ERROR |
-| 生成资料要等 40-60 秒 | 正常，8 种资源要串行调用大模型 |
+| 生成资料要等一会儿 | 正常，8 种资源并行调用大模型，约 15-30 秒 |
 | 端口 8000 被占用 | 关掉其他占用程序，或任务管理器结束多余的 python 进程 |
 
 ---
@@ -122,17 +122,6 @@ a3-learning-system/
 - [`docs/项目说明.md`](docs/项目说明.md)：**完整手册**——每个文件干什么、小白运行步骤、功能对照、版本记录 ← 详细内容看这个
 - `docs/技术架构与实现逻辑.txt`：技术实现叙述
 - `docs/赛题原始存档/`：比赛提交的开发说明书与测试说明书（存档）
-
-## 开源项目参考
-
-| 项目 | 许可证 | 参考内容 |
-|---|---|---|
-| [DeepTutor (HKUDS)](https://github.com/HKUDS/DeepTutor) | Apache 2.0 | 记忆架构、掌握度算法、错题追踪 |
-| [inkos](https://github.com/Narcooo/inkos) | — | 模型配置中心、Skill 系统、守护进程设计 |
-| [CrewAI](https://github.com/crewAIInc/crewAI) | MIT | Agent 角色定义模式 |
-| [LangGraph](https://github.com/langchain-ai/langgraph) | MIT | Supervisor 协调模式（概念参考） |
-| [ChromaDB](https://github.com/chroma-core/chroma) | Apache 2.0 | 向量数据库 |
-| [BGE (BAAI)](https://huggingface.co/BAAI/bge-small-zh-v1.5) | MIT | 中文 Embedding 模型 |
 
 ## AI 工具说明
 
