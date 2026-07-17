@@ -56,10 +56,10 @@ async function send(){
   
   var start=Date.now();addMsg('user',esc(msg));
   var cs=document.getElementById('chat-scroll'),d=document.createElement('div');
-  d.className='msg assistant';d.innerHTML='<div class="av">AI</div><div class="bubble" id="sB"><div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem;padding:8px 0"><span class="spin"></span> 思考中 <span class="tick">0s</span></div></div>';
+  d.className='msg assistant';d.innerHTML='<div class="av">AI</div><div class="bubble" id="sB"><div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem;padding:8px 0"><span class="spin"></span> <span id="sB-label">思考中</span> <span class="tick" id="sB-tick">0s</span></div><div class="prog" id="sB-bar" style="display:none"><div class="track"><div class="fill" style="width:0%"></div></div></div></div>';
   cs.appendChild(d);cs.scrollTop=cs.scrollHeight;
-  var b=document.getElementById('sB'),tick=d.querySelector('.tick'),raw='';
-  var timer=setInterval(function(){if(tick)tick.textContent=Math.round((Date.now()-start)/1000)+'s';},1000);
+  var b=document.getElementById('sB'),tickEl=document.getElementById('sB-tick'),raw='',progLabel=document.getElementById('sB-label');
+  var timer=setInterval(function(){if(tickEl)tickEl.textContent=Math.round((Date.now()-start)/1000)+'s';},1000);
   _abortCtrl=new AbortController();
   try{
     var chatBody={message:msg,session_id:S.sid};
@@ -79,11 +79,15 @@ async function send(){
 
 function sse(type,data,b,raw,start){
   try{
-    var sk=b.dataset.skills?'<div class="think-done">🎯 已启用模式: '+esc(b.dataset.skills)+'</div>':'';
-    if(type==='skills'){try{b.dataset.skills=JSON.parse(data).join('、');}catch(e){}}
-    else if(type==='text'){raw+=data;if(raw===data){var e=Math.round((Date.now()-start)/1000);b.innerHTML=sk+'<div class="think-done">耗时 '+e+' 秒</div>'+md(raw);}else{b.innerHTML=sk+md(raw);}}
-    else if(type==='progress'){var p=JSON.parse(data);b.innerHTML=sk+'<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem;padding:8px 0"><span class="spin"></span> '+esc(p.label||'处理中')+' <span class="tick">'+Math.round((Date.now()-start)/1000)+'s</span></div><div class="prog"><div class="track"><div class="fill" style="width:'+Math.round(p.step/p.total*100)+'%"></div></div></div>';}
-    else if(type==='done'){try{var d=JSON.parse(data);b.innerHTML=sk+md(d.content||'');updateState(d);if(d.resources&&d.type==='resources'){var link=document.createElement('div');link.className='res-link';link.textContent='在资源库中查看 >';link.onclick=function(){go('resources');};b.appendChild(link);}}catch(e){b.innerHTML='<span style="color:var(--rust)">解析错误: '+esc(String(e))+'</span>';}}
+    var lbl=document.getElementById('sB-label'),bar=document.getElementById('sB-bar'),fill=bar?bar.querySelector('.fill'):null;
+    if(type==='skills'){try{var sn=JSON.parse(data);lbl.textContent='已启用: '+sn.join('、');}catch(e){lbl.textContent='思考中';}}
+    else if(type==='text'){raw+=data;if(raw.length<2)return raw;
+      if(lbl)lbl.textContent='';if(bar)bar.style.display='none';
+      var e=Math.round((Date.now()-start)/1000);b.innerHTML='<div class="think-done">耗时 '+e+' 秒</div>'+md(raw);}
+    else if(type==='progress'){var p=JSON.parse(data);
+      if(lbl)lbl.textContent=p.label||'处理中';
+      if(bar){bar.style.display='block';if(p.step&&p.total)fill.style.width=Math.round(p.step/p.total*100)+'%';}}
+    else if(type==='done'){b.innerHTML=md((JSON.parse(data)).content||'');}
     else if(type==='error'){b.innerHTML='<span style="color:var(--rust)">错误: '+esc(data)+'</span>';}
   }catch(e){}
   var cs=document.getElementById('chat-scroll');if(cs)cs.scrollTop=cs.scrollHeight;return raw;
@@ -450,11 +454,12 @@ async function testSvc(sid){var st=document.getElementById('mf-status');st.inner
   try{var r=await(await fetch('/api/models/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
     if(r.ok){st.innerHTML='<span style="color:var(--sage)">连接成功'+(r.note?'（'+esc(r.note)+'）':'，已拉取 '+(r.models||[]).length+' 个模型')+'</span>';
       if(r.detected_format&&document.getElementById('mf-fmt'))document.getElementById('mf-fmt').value=r.detected_format;
-      if(r.models&&r.models.length){var cur=(document.getElementById('mf-model')||{}).value;document.getElementById('mf-model').innerHTML=r.models.map(function(m){return'<option value="'+esc(m)+'"'+(m===cur?' selected':'')+'>'+esc(m)+'</option>';}).join('');}}
+      if(r.models&&r.models.length){SET.testModels=r.models;var cur=(document.getElementById('mf-model')||{}).value;document.getElementById('mf-model').innerHTML=r.models.map(function(m){return'<option value="'+esc(m)+'"'+(m===cur?' selected':'')+'>'+esc(m)+'</option>';}).join('');}}
     else st.innerHTML='<span style="color:var(--rust)">连接失败: '+esc(r.error||'')+'</span>';
   }catch(e){st.innerHTML='<span style="color:var(--rust)">网络错误</span>';}}
 
 async function saveSvc(sid,thenActivate){var body={service:sid,api_key:(document.getElementById('mf-key')||{}).value||'',base_url:(document.getElementById('mf-url')||{}).value||'',model:(document.getElementById('mf-model')||{}).value||'',api_format:(document.getElementById('mf-fmt')||{}).value||''};
+  if(SET.testModels&&SET.testModels.length)body.models=SET.testModels;
   try{var r=await(await fetch('/api/models/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
     if(!r.ok){alert('保存失败: '+(r.error||''));return false;}
     if(!thenActivate){SET.editSvc=null;SET.testModels=null;renderSettings();loadModelSel();}

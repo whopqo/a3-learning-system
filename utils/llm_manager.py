@@ -163,18 +163,18 @@ def get_state() -> dict:
             "has_key": bool(key),
             "key_preview": (key[:6] + "***") if key else "",
             "model": (cfg or {}).get("model", ""),
-            "known_models": preset["known_models"],
+            # 拉取过真实列表就用真实的，没拉过才用内置兜底
+            "known_models": (cfg or {}).get("_fetched_models") or preset["known_models"],
             "no_key": preset.get("no_key", False),
             "api_format": _get_api_format(sid),
         })
     return {"active": dict(_state["active"]), "services": services}
 
-def save_service(service: str, api_key: str = "", base_url: str = "", model: str = "", api_format: str = ""):
-    """保存一个服务商的配置，密钥和普通配置分开落盘"""
+def save_service(service: str, api_key: str = "", base_url: str = "", model: str = "", api_format: str = "", models: list = None):
+    """保存一个服务商的配置，密钥和普通配置分开落盘。models 是从API拉取的实时模型列表"""
     _load()
     if service not in PRESETS:
         return {"ok": False, "error": f"未知服务商: {service}"}
-    # 密钥卫生检查：贴错东西（中文/换行）会让 HTTP 层报奇怪的错，提前拦住
     if api_key and not all(32 <= ord(c) < 127 for c in api_key):
         return {"ok": False, "error": "API 密钥里有中文或特殊字符，请检查是不是复制错了"}
     with _lock:
@@ -185,12 +185,14 @@ def save_service(service: str, api_key: str = "", base_url: str = "", model: str
             cfg["model"] = model
         if api_format in ("openai", "anthropic"):
             cfg["api_format"] = api_format
+        if isinstance(models, list) and models:
+            cfg["_fetched_models"] = models[:80]  # 真实拉取的模型列表优先显示
         _state["services"][service] = cfg
         _save_state()
         if api_key:
             _secrets[service] = {"api_key": api_key}
             _save_secrets()
-        _clients.clear()  # 配置变了，客户端缓存全部作废
+        _clients.clear()
     return {"ok": True}
 
 def delete_service(service: str):

@@ -604,9 +604,11 @@ async def test_model(request: Request):
 async def save_model(request: Request):
     """保存服务商配置（密钥单独存 secrets.json）"""
     body = await request.json()
+    models = body.get("models") or body.get("test_models") or []
     r = llm_manager.save_service(
         body.get("service", ""), body.get("api_key", ""),
-        body.get("base_url", ""), body.get("model", ""), body.get("api_format", ""))
+        body.get("base_url", ""), body.get("model", ""), body.get("api_format", ""),
+        models if isinstance(models, list) and models else None)
     if r.get("ok"):
         info(f"保存模型配置: {body.get('service')} / {body.get('model')}", "models")
     return r
