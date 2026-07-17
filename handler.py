@@ -184,6 +184,9 @@ class LearningSystem:
             yield {"type":"done","result":{"type":"chat","content":tip}}
             return
 
+        # 不管走哪条路，先给个即时反馈——分类那次LLM调用是静默的，不发这个用户就干瞪"思考中"
+        yield {"type":"progress","step":1,"total":2,"label":"正在理解你的消息…"}
+
         # 分类。画像期的普通回答（不带指令词）不用劳烦LLM分类，省一次调用提速
         _cmd_words = ("帮我", "生成", "出题", "出几道", "讲讲", "讲解", "规划",
                       "路径", "资源", "是什么", "为什么", "批改", "评估", "做题", "练习题")

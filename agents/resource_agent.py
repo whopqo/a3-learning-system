@@ -13,10 +13,10 @@ from rag.engine import retrieve_knowledge, retrieve_context, KB_ONLY_RULE, extra
 
 def _mindmap_from_markdown(topic: str, md_text: str) -> str:
     """AI 输出了 Markdown 标题 → 直接传给前端用 Markmap 渲染。无交互导图，零语法错误"""
-    if not md_text:
+    txt = (md_text or "").strip()
+    # AI闹脾气说"知识库暂无"或压根没写出层级标题时，给默认结构别让页面空白
+    if not txt or "知识库暂无" in txt or "##" not in txt:
         return _default_mindmap(topic)
-    # 确保有根标题
-    txt = md_text.strip()
     if not txt.startswith("#"):
         txt = f"# {topic}\n{txt}"
     return txt
@@ -141,9 +141,9 @@ class ResourceAgent(BaseAgent):
 
     def generate_mind_map(self, topic: str, rag_context: str) -> str:
         """AI 用 Markdown 标题写思维导图，交给前端 Markmap 渲染——可折叠交互，零语法错误"""
-        prompt = f"""为「{topic}」写一个 Markdown 标题大纲，前端会自动转成可折叠的思维导图。
+        prompt = f"""为「{topic}」写一个 Markdown 标题大纲，前端会自动转成可折叠的思维导图。知识库里已有这一章的内容，你负责把知识点整理成树形结构。
 
-知识库参考：
+知识库参考（术语从这里取）：
 {rag_context[:1200]}
 
 格式要求：
@@ -151,7 +151,6 @@ class ResourceAgent(BaseAgent):
 - 3-5 个二级话题，每个下面 2-4 个细节点
 - 标题 8 字以内，直接用中文术语
 - 不输出代码块（```），不输出 JSON，就纯 Markdown 标题行
-{KB_ONLY_RULE}
 
 直接输出 Markdown 标题，像这样：
 # 决策树

@@ -226,12 +226,12 @@ class AgentGraph:
         tasks = [(key, label, gen_fn) for key, label, gen_fn, _ in gens
                  if not exercises_only or key == "exercises"]
 
-        # 并行生成：4线程稳妥（8个并发容易触发API限流反而更慢）。子线程默认不继承contextvar，
+        # 并行生成：8线程一轮跑完（若遇限流可调回4）。子线程默认不继承contextvar，
         # 要手动复制上下文，不然聊天框选的模型和教学模式在这里会失效
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import contextvars
         idx = 0
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=8) as pool:
             futures = {}
             for key, label, gen_fn in tasks:
                 cv = contextvars.copy_context()

@@ -242,26 +242,20 @@ async function renderVideo(idx){var d=PD[idx];if(!d||d.type!=='video_script')ret
 function renderKnowledge(){var el=document.getElementById('knowledge-el');el.innerHTML='<div class="ph"><h2>知识库管理</h2><p>机器学习课程教材 · '+KD.length+' 个文档</p></div><div class="chart-box"><h4 style="display:flex;justify-content:space-between;align-items:center">章节依赖图（绿色 = 已掌握，箭头 = 先学→后学）<button class="btn-sm" onclick="showGraphBig()">🔍 放大查看</button></h4><div id="kb-graph" style="overflow-x:auto;color:var(--muted);font-size:.85rem">加载中...</div></div><div class="kb-header"><button class="btn-sm" onclick="document.getElementById(\'kb-form\').classList.toggle(\'show\')">+ 添加资料到知识库</button></div><div class="kb-add-form" id="kb-form"><input type="text" id="kb-title" placeholder="标题（会作为文档名）"><textarea id="kb-content" placeholder="粘贴资料正文（至少30字），或用下面的按钮选择 txt/md 文件"></textarea><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input type="file" id="kb-file" accept=".txt,.md" onchange="readKBFile(this)" style="font-size:.78rem"><button class="btn-sm" onclick="addKBItem(this)">入库（约需1分钟向量化）</button><span id="kb-up-status" style="font-size:.78rem;color:var(--muted)"></span></div></div><div class="kb-grid" id="kb-grid"></div>';renderKBGrid();loadKBGraph();}
 function readKBFile(inp){var f=inp.files&&inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){document.getElementById('kb-content').value=r.result;if(!document.getElementById('kb-title').value)document.getElementById('kb-title').value=f.name.replace(/\.(txt|md)$/,'');};r.readAsText(f,'utf-8');}
 async function loadKBGraph(){var el=document.getElementById('kb-graph');if(!el)return;
+  if(!window.echarts){el.innerHTML='图表库加载中，请刷新';return;}
   try{var d=await(await fetch('/api/kb/graph')).json();var nodes=d.nodes||[],edges=d.edges||[];
     if(!nodes.length){el.innerHTML='暂无图谱数据';return;}
     var mas=(S.profile&&S.profile.mastered_topics)||[];
-    var lines=['flowchart LR'],okIds=[];
-    nodes.forEach(function(n,i){var nm=String(n.name||n.id).replace(/[\"\[\]{}()<>]/g,'').substring(0,16);lines.push('n'+i+'["'+nm+'"]');
-      if(mas.some(function(m){return nm.indexOf(m)>=0||m.indexOf(nm)>=0;}))okIds.push('n'+i);});
-    var idmap={};nodes.forEach(function(n,i){idmap[n.id]='n'+i;});
-    edges.forEach(function(e){if(idmap[e.source]&&idmap[e.target])lines.push(idmap[e.source]+' --> '+idmap[e.target]);});
-    lines.push('classDef done fill:#eef5ef,stroke:#4a7c59,color:#4a7c59');
-    if(okIds.length)lines.push('class '+okIds.join(',')+' done');
-    window._kbgSrc=lines.join('\n');
-    el.innerHTML='<div class="mermaid" id="kb-graph-mm">'+window._kbgSrc+'</div>';
-    setTimeout(function(){try{mermaid.run({nodes:[document.getElementById('kb-graph-mm')]});}catch(e){}},60);
+    var eNodes=nodes.map(function(n){var nm=String(n.name||n.id).substring(0,16);var mastered=mas.some(function(m){return nm.indexOf(m)>=0||m.indexOf(nm)>=0;});
+      return{id:String(n.id),name:nm,category:mastered?0:1,label:{show:true,fontSize:11,color:mastered?'#4a7c59':'#1a2332'},symbolSize:mastered?36:28,itemStyle:{color:mastered?'#4a7c59':'#8b8578'}};});
+    var eEdges=edges.map(function(e){return{source:String(e.source),target:String(e.target),lineStyle:{color:'#d0c8b2',curveness:.15}};});
+    window._kbgChart=echarts.init(el);el.style.width='100%';el.style.height='460px';
+    window._kbgChart.setOption({tooltip:{formatter:function(p){if(p.dataType==='node')return p.name+(p.data.category===0?' (已掌握)':'');}},series:[{type:'graph',layout:'force',force:{repulsion:280,edgeLength:[70,220],gravity:.1},roam:true,draggable:true,data:eNodes,links:eEdges,edgeSymbol:['none','arrow'],edgeSymbolSize:[0,10],lineStyle:{color:'#d0c8b2',curveness:.15},categories:[{name:'已掌握',itemStyle:{color:'#4a7c59'}},{name:'未掌握',itemStyle:{color:'#8b8578'}}]}]});
   }catch(e){el.innerHTML='图谱加载失败';}}
-function showGraphBig(){if(!window._kbgSrc){alert('图谱还没加载出来，稍等一下');return;}
-  var mc=document.getElementById('modal-content');
-  M.querySelector('.modal-inner').style.maxWidth='96vw';
-  mc.innerHTML='<h3>章节依赖图</h3><p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">绿色 = 已掌握 · 箭头 = 先学→后学 · 左右拖动查看</p><div id="kb-graph-big" style="overflow:auto;max-height:75vh"><div class="mermaid" id="kb-graph-big-mm">'+window._kbgSrc+'</div></div>';
-  M.classList.add('show');
-  setTimeout(function(){try{mermaid.run({nodes:[document.getElementById('kb-graph-big-mm')]});}catch(e){}},60);}
+function showGraphBig(){if(!window._kbgChart){alert('图谱还没加载出来，稍等一下');return;}
+  M.querySelector('.modal-inner').style.maxWidth='96vw';var mc=document.getElementById('modal-content');
+  mc.innerHTML='<h3>章节依赖图</h3><p style="font-size:.78rem;color:var(--muted);margin-bottom:8px">绿色=已掌握 · 灰色=未掌握 · 箭头=先学→后学 · 可拖拽缩放</p><div id="kb-graph-big" style="width:100%;height:75vh"></div>';
+  M.classList.add('show');setTimeout(function(){var c=echarts.init(document.getElementById('kb-graph-big'));c.setOption(window._kbgChart.getOption(),true);},120);}
 async function loadKBDocs(){try{var r=await fetch('/api/kb/docs');var d=await r.json();KD=d.docs||[];}catch(e){}}
 async function importKB(){try{var r=await fetch('/api/kb/import',{method:'POST'});var d=await r.json();alert(d.message||'完成');}catch(e){alert('构建失败');}}
 function renderKBGrid(){var g=document.getElementById('kb-grid'),items=KD.length?KD:S.kbItems;if(!items||!items.length){g.innerHTML='<div class="empty"><h3>知识库为空</h3><p>知识库自动从 course_data 目录加载</p></div>';return;}g.innerHTML=items.map(function(it,i){var raw=(it.preview||it.content||'').substring(0,200);var pv=raw.replace(/^#{1,3}\s/gm,'').replace(/\*\*/g,'').replace(/\*/g,'').replace(/\n/g,' ');var sz=it.size_chars?(it.size_chars>1000?Math.round(it.size_chars/1000)+'k字':it.size_chars+'字'):'';return'<div class="kb-card" onclick="showKbContent('+i+')" style="cursor:pointer"><div class="kb-title">'+esc(it.title)+'</div><div class="kb-preview">'+(pv?esc(pv)+'...':'')+'</div><div class="kb-meta"><span>'+esc(it.source||'')+'</span><span>'+sz+' | '+(it.line_count||'')+'行</span></div></div>';}).join('');}
