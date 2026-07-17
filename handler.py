@@ -315,6 +315,8 @@ class LearningSystem:
     # 画像构建
 
     def _profile_step(self, session: dict, round_num: int, result: dict):
+        # 提取要调一次LLM，先给个即时反馈别让用户干等"思考中"
+        yield {"type":"progress","step":1,"total":2,"label":"正在分析你的回答…"}
         conv_text = "\n".join([
             f"{'学生' if m['role']=='user' else '系统'}: {m['content'][:300]}"
             for m in session["conversation_history"]
@@ -333,8 +335,10 @@ class LearningSystem:
             session["phase"] = "learning"
             session["_profile_done_shown"] = True
 
+            yield {"type":"progress","step":1,"total":3,"label":"画像收集完毕，开始规划路径…"}
             ctx = {"profile": profile_new}
             yield from self.graph.walk("path", ctx)
+            yield {"type":"progress","step":2,"total":3,"label":"路径规划完成，正在生成学习资料…"}
 
             lp = ctx.get("learning_path", {})
             session["learning_path"] = lp

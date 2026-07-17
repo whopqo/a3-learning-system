@@ -106,7 +106,9 @@ class AgentGraph:
     # 节点执行
 
     def _run_node(self, node: GraphNode, ctx: dict) -> Generator[dict, None, None]:
-        yield {"type":"progress","step":1,"total":2,"label":f"{node.name}工作中…"}
+        cn = {"profile": "分析学习画像", "path": "规划学习路径", "resource": "生成学习资源",
+              "tutor": "思考解答", "evaluate": "评估作答"}
+        yield {"type":"progress","step":1,"total":2,"label":f"正在{cn.get(node.name, node.name)}…"}
 
         if node.name == "profile":
             result = self._exec_profile(ctx)
@@ -224,12 +226,12 @@ class AgentGraph:
         tasks = [(key, label, gen_fn) for key, label, gen_fn, _ in gens
                  if not exercises_only or key == "exercises"]
 
-        # 并行生成：8个任务一轮跑完。子线程默认不继承contextvar，
+        # 并行生成：4线程稳妥（8个并发容易触发API限流反而更慢）。子线程默认不继承contextvar，
         # 要手动复制上下文，不然聊天框选的模型和教学模式在这里会失效
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import contextvars
         idx = 0
-        with ThreadPoolExecutor(max_workers=8) as pool:
+        with ThreadPoolExecutor(max_workers=4) as pool:
             futures = {}
             for key, label, gen_fn in tasks:
                 cv = contextvars.copy_context()
