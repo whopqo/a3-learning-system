@@ -59,41 +59,54 @@ async def chat(request: Request):
         )
 
     async def generate():
-        try:
-            if sel_service:
-                llm_manager.set_session_override(sel_service, sel_model)
-            used = skill_manager.resolve(req_skills, message)
-            skill_manager.set_active(used)
-            if used:
-                yield _sse_event("skills", json.dumps([s["name"] for s in used], ensure_ascii=False))
-            for event in system.process_message_stream(message, session_id):
-                if event["type"] == "text":
-                    yield _sse_event("text", event["content"])
-                elif event["type"] == "progress":
-                    yield _sse_event("progress", json.dumps({
-                        "step": event["step"],
-                        "total": event["total"],
-                        "label": event.get("label", ""),
-                    }, ensure_ascii=False))
-                elif event["type"] == "done":
-                    result = event["result"]
-                    meta = event.get("metadata", {})
-                    # 提取session状态
-                    sess = system.sessions.get(session_id, {})
-                    payload = {
-                        "content": result["content"],
-                        "type": result.get("type", "chat"),
-                        "profile": sess.get("profile"),
-                        "resources": sess.get("resources"),
-                        "learning_path": sess.get("learning_path"),
-                        "phase": sess.get("phase"),
-                    }
-                    yield _sse_event("done", json.dumps(payload, ensure_ascii=False, default=str))
-        except Exception as e:
-            yield _sse_event("error", str(e)[:200])
-        finally:
-            llm_manager.clear_session_override()
-            skill_manager.clear_active()
+        if sel_service:
+            llm_manager.set_session_override(sel_service, sel_model)
+        used = skill_manager.resolve(req_skills, message)
+        skill_manager.set_active(used)
+
+        import queue as _queue
+        import threading
+        q = _queue.Queue()
+        # 同步处理在独立线程跑，主循环负责实时发送——再也不用等LLM调用回来才flush
+        def _worker():
+            try:
+                if used:
+                    q.put(("skills", json.dumps([s["name"] for s in used], ensure_ascii=False)))
+                for event in system.process_message_stream(message, session_id):
+                    if event["type"] in ("text", "progress", "error"):
+                        q.put((event["type"], event.get("content") if event["type"] == "text"
+                               else (str(event["content"]) if event["type"] == "error"
+                                     else json.dumps({"step": event["step"], "total": event["total"],
+                                       "label": event.get("label", "")}, ensure_ascii=False))))
+                    elif event["type"] == "done":
+                        result = event["result"]
+                        meta = event.get("metadata", {})
+                        sess = system.sessions.get(session_id, {})
+                        payload = {
+                            "content": result["content"],
+                            "type": result.get("type", "chat"),
+                            "profile": sess.get("profile"),
+                            "resources": sess.get("resources"),
+                            "learning_path": sess.get("learning_path"),
+                            "phase": sess.get("phase"),
+                        }
+                        q.put(("done", json.dumps(payload, ensure_ascii=False, default=str)))
+                q.put(None)  # 结束哨兵
+            except Exception as e:
+                q.put(("error", str(e)[:200]))
+                q.put(None)
+            finally:
+                llm_manager.clear_session_override()
+                skill_manager.clear_active()
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+
+        while True:
+            item = await asyncio.to_thread(q.get)
+            if item is None:
+                break
+            yield _sse_event(item[0], item[1])
 
     return StreamingResponse(generate(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})

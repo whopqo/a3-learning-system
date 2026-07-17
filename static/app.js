@@ -80,14 +80,16 @@ async function send(){
 function sse(type,data,b,raw,start){
   try{
     var lbl=document.getElementById('sB-label'),bar=document.getElementById('sB-bar'),fill=bar?bar.querySelector('.fill'):null;
-    if(type==='skills'){try{var sn=JSON.parse(data);lbl.textContent='已启用: '+sn.join('、');}catch(e){lbl.textContent='思考中';}}
+    if(type==='skills'){try{var sn=JSON.parse(data);lbl.textContent='已启用: '+sn.join('、');}catch(e){}}
     else if(type==='text'){raw+=data;if(raw.length<2)return raw;
-      if(lbl)lbl.textContent='';if(bar)bar.style.display='none';
+      if(lbl)lbl.textContent='收到回复（生成完成）';if(bar)bar.style.display='none';
       var e=Math.round((Date.now()-start)/1000);b.innerHTML='<div class="think-done">耗时 '+e+' 秒</div>'+md(raw);}
     else if(type==='progress'){var p=JSON.parse(data);
-      if(lbl)lbl.textContent=p.label||'处理中';
-      if(bar){bar.style.display='block';if(p.step&&p.total)fill.style.width=Math.round(p.step/p.total*100)+'%';}}
-    else if(type==='done'){b.innerHTML=md((JSON.parse(data)).content||'');}
+      if(lbl){lbl.textContent=p.label||'处理中';
+        if(bar){bar.style.display='block';if(p.step&&p.total)fill.style.width=Math.round(p.step/p.total*100)+'%';}}
+      else{b.innerHTML='<div class="think-done"><span class="spin"></span> '+esc(p.label||'处理中')+' '+Math.round((Date.now()-start)/1000)+'s</div>'+(raw?md(raw):'');}}
+    else if(type==='done'){try{var d=JSON.parse(data);b.innerHTML='<div class="think-done">耗时 '+Math.round((Date.now()-start)/1000)+' 秒</div>'+md(d.content||'');updateState(d);
+      if(d.resources&&d.type==='resources'){var link=document.createElement('div');link.className='res-link';link.textContent='在资源库中查看 >';link.onclick=function(){go('resources');};b.appendChild(link);}}catch(e){b.innerHTML='<span style="color:var(--rust)">解析错误</span>';}}
     else if(type==='error'){b.innerHTML='<span style="color:var(--rust)">错误: '+esc(data)+'</span>';}
   }catch(e){}
   var cs=document.getElementById('chat-scroll');if(cs)cs.scrollTop=cs.scrollHeight;return raw;
