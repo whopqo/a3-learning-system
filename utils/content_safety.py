@@ -4,7 +4,6 @@
 import re
 from config import SENSITIVE_KEYWORDS
 
-
 def check_content_safety(text: str) -> tuple[bool, str]:
     """
     检查内容是否安全
@@ -39,14 +38,12 @@ def check_content_safety(text: str) -> tuple[bool, str]:
 
     return True, "ok"
 
-
 def filter_sensitive(text: str) -> str:
     """过滤敏感内容，替换为***"""
     result = text
     for kw in SENSITIVE_KEYWORDS:
         result = result.replace(kw, "***")
     return result
-
 
 def is_learning_related(text: str) -> bool:
     """判断是否与学习相关（简单的范围校验）"""
@@ -64,7 +61,6 @@ def is_learning_related(text: str) -> bool:
         if kw.lower() in text_lower:
             return True
     return False
-
 
 def check_citation_integrity(generated_text: str, source_texts: list[str]) -> dict:
     """

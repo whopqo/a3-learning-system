@@ -9,7 +9,6 @@ from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS
 from rag.engine import retrieve_knowledge, KB_ONLY_RULE, check_topic_relevance
 
-
 # 知识库无内容时的统一回复
 KB_NOT_FOUND_MSG = (
     "📚 知识库中暂时没有关于这个问题的详细内容。\n\n"
@@ -18,7 +17,6 @@ KB_NOT_FOUND_MSG = (
     "• 模型评估、过拟合、正则化等基础概念\n"
     "• 输入「帮我规划学习路径」让我帮你梳理学习路线"
 )
-
 
 class TutorAgent(BaseAgent):
     """一对一辅导老师 —— 加分项"""

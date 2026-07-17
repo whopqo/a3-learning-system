@@ -12,14 +12,12 @@ from config import PROJ_ROOT
 _FILE = os.path.join(PROJ_ROOT, "db", "mistakes.json")
 _lock = threading.Lock()
 
-
 def _load() -> dict:
     try:
         with open(_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
-
 
 def add_mistakes(session_id: str, topic: str, wrong_results: list, exercises: list):
     """把这次答错的题存进错题本，带上知识点"""
@@ -47,11 +45,9 @@ def add_mistakes(session_id: str, topic: str, wrong_results: list, exercises: li
         with open(_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-
 def list_mistakes(session_id: str, n: int = 50) -> list:
     data = _load()
     return data.get(session_id, [])[-n:]
-
 
 def clear_mistakes(session_id: str):
     with _lock:
@@ -59,7 +55,6 @@ def clear_mistakes(session_id: str):
         data.pop(session_id, None)
         with open(_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-
 
 def build_review_prompt(mistakes: list, rag_context: str) -> str:
     """根据错题生成复习卷的提示词，出变式题而不是原题"""

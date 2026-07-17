@@ -5,7 +5,6 @@
 import json
 import re
 
-
 def extract_json(text: str) -> str:
     """从文本里提取JSON，去掉markdown代码块等噪音"""
     if not text or not isinstance(text, str):
@@ -35,7 +34,6 @@ def extract_json(text: str) -> str:
             return text[brace:end + 1]
 
     return text
-
 
 def sanitize_json(text: str) -> str:
     """处理JSON字符串中的控制字符（在字符串值内部转义）"""

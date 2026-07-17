@@ -9,7 +9,6 @@ from typing import Dict, Any
 from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS
 
-
 class EvaluateAgent(BaseAgent):
     """学习评估师 —— 加分项"""
 

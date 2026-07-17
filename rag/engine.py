@@ -15,7 +15,6 @@ _client = None
 _collection = None
 _ef = None
 
-
 class LocalEmbeddingFunction(EmbeddingFunction):
     """自定义Embedding函数 —— 支持离线加载 + 强制CPU"""
 
@@ -44,14 +43,12 @@ class LocalEmbeddingFunction(EmbeddingFunction):
         )
         return embeddings.tolist()
 
-
 def _get_ef():
     """获取或创建 EmbeddingFunction 单例"""
     global _ef
     if _ef is None:
         _ef = LocalEmbeddingFunction(EMBEDDING_MODEL, device="cpu")
     return _ef
-
 
 def _get_collection():
     """懒加载 chromadb collection，自动处理重建后的 UUID 变化"""
@@ -73,8 +70,6 @@ def _get_collection():
     except Exception:
         _collection = None
     return _collection
-
-
 
 def build_knowledge_base(source_dir: str = None):
     """构建知识库：读取 txt/md → 切块 → 向量化 → 存 ChromaDB"""
@@ -130,14 +125,12 @@ def build_knowledge_base(source_dir: str = None):
     print(f"知识库构建完成，共 {_collection.count()} 个片段")
     return _collection
 
-
 def get_vectordb():
     """获取向量数据库实例"""
     col = _get_collection()
     if col is None or col.count() == 0:
         raise RuntimeError("知识库未构建，请先运行 knowledge_base/build_kb.py")
     return col
-
 
 def retrieve_knowledge(query: str, k: int = None) -> str:
     """检索知识库，返回带出处标注的结果"""
@@ -161,7 +154,6 @@ def retrieve_knowledge(query: str, k: int = None) -> str:
         lines.append(f"[片段{i}] (相关度: {relevance:.2f})\n{doc}\n  —— 来源：{source}")
 
     return "\n\n".join(lines)
-
 
 def retrieve_context(query: str, k: int = None) -> list[dict]:
     """检索并返回结构化结果，供Agent使用"""
@@ -189,7 +181,6 @@ def retrieve_context(query: str, k: int = None) -> list[dict]:
 
     return contexts
 
-
 def is_kb_ready() -> bool:
     """检查知识库是否已构建"""
     try:
@@ -197,7 +188,6 @@ def is_kb_ready() -> bool:
         return col is not None and col.count() > 0
     except Exception:
         return False
-
 
 def check_topic_relevance(topic: str, threshold: float = 0.55) -> dict:
     """检查某个主题是否在知识库中有相关内容"""
@@ -219,7 +209,6 @@ def check_topic_relevance(topic: str, threshold: float = 0.55) -> dict:
     except Exception:
         return {"relevant": False, "reason": "检索异常", "best_match": "", "score": 0}
 
-
 def get_available_topics() -> list[str]:
     """获取知识库中已有的课程主题（美化的名称）"""
     try:
@@ -236,12 +225,10 @@ def get_available_topics() -> list[str]:
     except:
         return ["机器学习课程"]
 
-
 def topic_in_kb(topic: str, threshold: float = 0.45) -> bool:
     """简单判断：topic 在知识库中是否存在相关内容"""
     result = check_topic_relevance(topic, threshold)
     return result.get("relevant", False)
-
 
 def message_in_kb_scope(message: str, threshold: float = 0.28) -> bool:
     """用向量语义判断一条消息是否在知识库领域内。
@@ -258,12 +245,10 @@ def message_in_kb_scope(message: str, threshold: float = 0.28) -> bool:
     result = check_topic_relevance(message, threshold)
     return result.get("relevant", False)
 
-
 def quick_kb_score(message: str) -> float:
     """快速获取消息与KB的最高相似度，不做阈值判断"""
     result = check_topic_relevance(message, threshold=-1.0)  # 永远返回
     return result.get("score", 0.0)
-
 
 def extract_reading_materials(topic: str) -> str:
     """从知识库提取与topic相关的阅读材料——只取当前章节"""
@@ -300,8 +285,6 @@ def extract_reading_materials(topic: str) -> str:
                 break
     return "\n\n".join(chunks[:2]) if chunks else ""
 
-
-
 def extract_stories() -> str:
     """从知识库提取休息一会儿小故事,清理章节标题和尾部序号"""
     try:
@@ -337,7 +320,6 @@ def extract_stories() -> str:
         return "\n\n---\n\n".join(unique[:3]) if unique else ""
     except Exception:
         return ""
-
 
 KB_ONLY_RULE = (
     "【重要约束】你必须严格基于上方「知识库参考」的内容来生成，不得凭空编造。\n"

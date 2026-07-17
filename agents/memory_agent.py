@@ -9,7 +9,6 @@ from typing import Dict, Any
 from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS, PROJ_ROOT
 
-
 class MemoryAgent(BaseAgent):
     """记忆管理Agent —— 管理三层记忆"""
 

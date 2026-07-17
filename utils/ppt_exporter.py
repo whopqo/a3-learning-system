@@ -21,7 +21,6 @@ LIGHT_BG = RGBColor(0xF0, 0xEC, 0xE2)
 FONT = 'Microsoft YaHei'
 FONT_SERIF = 'Georgia'
 
-
 def _set_font(run, name=FONT, size=None, bold=False, color=None):
     """正确设置中西文字体——用SubElement而非set属性"""
     from lxml import etree
@@ -37,7 +36,6 @@ def _set_font(run, name=FONT, size=None, bold=False, color=None):
     run.font.bold = bold
     if color: run.font.color.rgb = color
 
-
 def _add_header_bar(slide, title, prs_width):
     bar = slide.shapes.add_shape(1, Inches(0), Inches(0), prs_width, Inches(1.1))
     bar.fill.solid(); bar.fill.fore_color.rgb = INK; bar.line.fill.background()
@@ -45,13 +43,11 @@ def _add_header_bar(slide, title, prs_width):
     p = tf.paragraphs[0]; p.text = title
     _set_font(p.runs[0] if p.runs else p.add_run(), size=Pt(28), bold=True, color=WHITE)
 
-
 def _add_footer(slide, topic):
     ft = slide.shapes.add_textbox(Inches(0.8), Inches(6.85), Inches(11.5), Inches(0.4))
     p = ft.text_frame.paragraphs[0]; p.text = f"EduSynth AI学习助手 · {topic}"
     _set_font(p.runs[0] if p.runs else p.add_run(), size=Pt(9), color=MUTED)
     p.alignment = PP_ALIGN.CENTER
-
 
 def _add_insight_box(slide, text, top):
     box = slide.shapes.add_shape(5, Inches(1.2), top, Inches(11), Inches(0.8))
@@ -61,7 +57,6 @@ def _add_insight_box(slide, text, top):
     tf.word_wrap = True
     p = tf.paragraphs[0]; p.text = f"💡 {text[:200]}"
     _set_font(p.runs[0] if p.runs else p.add_run(), size=Pt(14), color=INK_LIGHT)
-
 
 def export_pptx(ppt_outline: str, topic: str = "课件", output_dir: str = None) -> str:
     if output_dir is None: output_dir = os.path.join(PROJ_ROOT, "output")
@@ -180,7 +175,6 @@ def export_pptx(ppt_outline: str, topic: str = "课件", output_dir: str = None)
     except Exception as e:
         raise RuntimeError(f"PPTX保存失败: {e}") from e
     return filepath
-
 
 def _parse(text: str) -> list:
     slides = []; cur = None

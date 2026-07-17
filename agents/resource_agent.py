@@ -11,7 +11,6 @@ from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS, RESOURCE_TYPES
 from rag.engine import retrieve_knowledge, retrieve_context, KB_ONLY_RULE, extract_reading_materials, extract_stories
 
-
 def _mindmap_from_markdown(topic: str, md_text: str) -> str:
     """AI 输出了 Markdown 标题 → 直接传给前端用 Markmap 渲染。无交互导图，零语法错误"""
     if not md_text:
@@ -22,10 +21,8 @@ def _mindmap_from_markdown(topic: str, md_text: str) -> str:
         txt = f"# {topic}\n{txt}"
     return txt
 
-
 def _default_mindmap(topic: str) -> str:
     return f"# {topic}\n\n## 基本概念\n### 定义与背景\n### 核心思想\n\n## 关键方法\n### 主要算法\n### 评估指标\n\n## 应用场景\n### 经典案例\n### 工具与框架"
-
 
 class ResourceAgent(BaseAgent):
     """资源生成Agent —— 生成7种类型的学习资源"""

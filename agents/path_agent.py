@@ -10,14 +10,12 @@ from config import AGENT_SYSTEM_PROMPTS
 from utils.knowledge_graph import get_knowledge_graph
 from rag.engine import retrieve_knowledge, retrieve_context
 
-
 def _score_label(v: float) -> str:
     if v < 0.25: return "零基础"
     if v < 0.4: return "接近零基础"
     if v < 0.55: return "一般"
     if v < 0.75: return "不错"
     return "很强"
-
 
 class PathAgent(BaseAgent):
     """学习路径规划师 —— 个性化阶段式路径"""

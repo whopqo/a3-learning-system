@@ -4,7 +4,7 @@
 """
 import os
 
-# ====== 项目根目录 ======
+# 项目根目录
 PROJ_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # 自动加载 .env 文件（不需要额外安装 python-dotenv）
@@ -24,7 +24,7 @@ if os.path.exists(_env_file):
             if _key and _key not in os.environ:
                 os.environ[_key] = _val
 
-# ====== 大模型Provider配置 ======
+# 大模型Provider配置
 # 通过 LLM_PROVIDER 切换：deepseek / spark / qwen / glm / ollama
 # 支持环境变量: export LLM_PROVIDER=spark
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "deepseek")
@@ -73,13 +73,13 @@ if not LLM_API_KEY and LLM_PROVIDER != "ollama":
 if LLM_API_KEY and not os.environ.get("OPENAI_API_KEY"):
     os.environ["OPENAI_API_KEY"] = LLM_API_KEY
 
-# ====== 修复 SSL 证书问题（conda 环境常见） ======
+# 修复 SSL 证书问题（conda 环境常见）
 if "SSL_CERT_FILE" in os.environ:
     cert_path = os.environ["SSL_CERT_FILE"]
     if not os.path.exists(cert_path):
         del os.environ["SSL_CERT_FILE"]
 
-# ====== HuggingFace 配置 ======
+# HuggingFace 配置
 os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 # 只在模型已缓存时才开离线模式，避免首次运行报错
 _model_cache = os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub")
@@ -89,26 +89,26 @@ _model_cached = os.path.isdir(_model_cache) and any(
 if _model_cached:
     os.environ["HF_HUB_OFFLINE"] = "1"
 
-# ====== Embedding 模型 ======
+# Embedding 模型
 EMBEDDING_MODEL = "BAAI/bge-small-zh-v1.5"
 
-# ====== ChromaDB 路径 ======
+# ChromaDB 路径
 CHROMA_PERSIST_DIR = os.path.join(PROJ_ROOT, "db", "chroma_storage")
 
-# ====== 知识库目录 ======
+# 知识库目录
 KB_SOURCE_DIR = os.path.join(PROJ_ROOT, "knowledge_base", "course_data")
 
-# ====== 课程配置 ======
+# 课程配置
 COURSE_NAME = "机器学习"
 COURSE_DESCRIPTION = "面向本科生的机器学习入门课程，涵盖监督学习、无监督学习、深度学习基础、模型评估等核心内容"
 
-# ====== 内容安全 ======
+# 内容安全
 SENSITIVE_KEYWORDS = [
     "暴力", "色情", "赌博", "毒品", "枪支", "反动",
     "颠覆", "分裂", "恐怖", "邪教"
 ]
 
-# ====== LLM 温度配置（不同任务用不同温度） ======
+# LLM 温度配置（不同任务用不同温度）
 LLM_TEMPERATURES = {
     "profile_analysis": 0.3,    # 画像分析，需要准确
     "resource_generation": 0.7,  # 资源生成，需要创意
@@ -118,7 +118,7 @@ LLM_TEMPERATURES = {
     "planning": 0.3,             # 路径规划，需要逻辑
 }
 
-# ====== RAG 配置 ======
+# RAG 配置
 RAG_CONFIG = {
     "chunk_size": 500,
     "chunk_overlap": 50,
@@ -126,13 +126,13 @@ RAG_CONFIG = {
     "similarity_threshold": 0.6,
 }
 
-# ====== 重试配置 ======
+# 重试配置
 MAX_LLM_RETRIES = 3        # LLM 调用最大重试次数
 LLM_RETRY_BASE_DELAY = 2   # 重试基础等待秒数（指数退避: delay * 2^attempt）
 MAX_PARSE_RETRIES = 2
 MAX_GENERATE_RETRIES = 2
 
-# ====== 资源类型定义（handler 和 resource_agent 共用） ======
+# 资源类型定义（handler 和 resource_agent 共用）
 RESOURCE_TYPES = [
     ("lecture_notes", "讲解文档"),
     ("mind_map", "思维导图"),
@@ -144,7 +144,7 @@ RESOURCE_TYPES = [
     ("video_script", "视频脚本"),
 ]
 
-# ====== Agent 系统提示词（集中管理方便调优） ======
+# Agent 系统提示词（集中管理方便调优）
 AGENT_SYSTEM_PROMPTS = {
     "supervisor": """你是 EduSupervisor，一个多智能体学习系统的协调者。
 你的职责：
@@ -249,7 +249,7 @@ AGENT_SYSTEM_PROMPTS = {
 4. 确保记忆的可追溯性""",
 }
 
-# ====== 画像维度定义（与 ProfileAgent._REQUIRED_DIMS 一致） ======
+# 画像维度定义（与 ProfileAgent._REQUIRED_DIMS 一致）
 PROFILE_DIMENSIONS = [
     "ml_prerequisites",    # ML了解程度（0.15-0.9评分）
     "programming",         # Python编程水平（0.15-0.9评分）

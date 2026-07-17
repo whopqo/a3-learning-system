@@ -25,7 +25,6 @@ _EDITABLE = {
     "max_llm_retries": int,
 }
 
-
 def load_and_apply():
     """启动时调用：读 settings.json 并应用到 config"""
     try:
@@ -35,7 +34,6 @@ def load_and_apply():
         return data
     except Exception:
         return {}
-
 
 def _apply(data: dict):
     """把设置写进 config 的运行时对象，字典原地改立即生效"""
@@ -58,7 +56,6 @@ def _apply(data: dict):
     if "max_llm_retries" in data:
         config.MAX_LLM_RETRIES = int(data["max_llm_retries"])
 
-
 def get_settings() -> dict:
     """当前生效的设置（含默认值），给前端渲染表单"""
     return {
@@ -72,7 +69,6 @@ def get_settings() -> dict:
         "temp_evaluation": config.LLM_TEMPERATURES.get("evaluation", 0.2),
         "max_llm_retries": config.MAX_LLM_RETRIES,
     }
-
 
 def save_settings(data: dict) -> dict:
     """校验 → 应用 → 落盘。未知键丢弃，类型不对报错"""

@@ -7,7 +7,6 @@ from typing import Dict, Any
 from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS
 
-
 class ProfileAgent(BaseAgent):
     """学情分析师 —— LLM驱动的自然对话画像"""
 

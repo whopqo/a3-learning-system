@@ -16,7 +16,6 @@ print("浏览器稍后会自动打开 http://localhost:8000")
 print("按 Ctrl+C 可以停止服务")
 print()
 
-
 def open_browser():
     """轮询健康检查，服务就绪后打开浏览器"""
     url = "http://localhost:8000/api/health"
@@ -29,7 +28,6 @@ def open_browser():
         except Exception:
             pass
     print("\n服务启动超时，请手动打开 http://localhost:8000")
-
 
 threading.Thread(target=open_browser, daemon=True).start()
 

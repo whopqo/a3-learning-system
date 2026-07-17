@@ -6,7 +6,6 @@ from typing import Any
 from agents.base_agent import BaseAgent
 from config import AGENT_SYSTEM_PROMPTS
 
-
 class SupervisorAgent(BaseAgent):
     """协调者Agent —— handler 通过它调用 LLM 做引导和闲聊"""
 

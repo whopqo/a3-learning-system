@@ -5,7 +5,6 @@ import json, os, re
 import networkx as nx
 from typing import List, Dict, Optional, Set
 
-
 def _scan_course_chapters() -> list[dict]:
     """从 course_data 目录扫描所有章节文件名，生成节点列表"""
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +36,6 @@ def _scan_course_chapters() -> list[dict]:
         })
     return chapters if chapters else _fallback_chapters()
 
-
 def _fallback_chapters() -> list[dict]:
     return [
         {"id": "ch1", "name": "绪论", "difficulty": "入门", "hours": 1.0, "category": "基础", "order": 1},
@@ -58,7 +56,6 @@ def _fallback_chapters() -> list[dict]:
         {"id": "ch16", "name": "强化学习", "difficulty": "进阶", "hours": 3.0, "category": "进阶专题", "order": 16},
         {"id": "appendix", "name": "附录A 矩阵", "difficulty": "进阶", "hours": 1.0, "category": "参考", "order": 998},
     ]
-
 
 class KnowledgeGraph:
     """课程知识图谱 -- 教材章节依赖图"""
@@ -221,9 +218,7 @@ class KnowledgeGraph:
                 seen.add(node_id)
         return path
 
-
 _knowledge_graph = None
-
 
 def get_knowledge_graph() -> KnowledgeGraph:
     global _knowledge_graph

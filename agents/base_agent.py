@@ -13,7 +13,6 @@ from config import LLM_RETRY_BASE_DELAY
 from utils.parser import extract_json
 from utils import llm_manager
 
-
 class BaseAgent(ABC):
     """所有智能体的基类"""
 

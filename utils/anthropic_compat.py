@@ -9,7 +9,6 @@ import json
 import httpx
 from types import SimpleNamespace
 
-
 class AnthropicClient:
     """接口形状模仿 openai.OpenAI，只实现项目里用到的部分"""
 

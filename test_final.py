@@ -34,7 +34,6 @@ def chat(msg, sid, timeout=180):
             except: pass
     return {}
 
-# ==========================================
 print('=== F0: 基础运行 ===')
 h = requests.get(f'{BASE}/api/health').json()
 test('Health check', h['status']=='ok')
@@ -49,7 +48,6 @@ fname = docs['docs'][0]['filename']
 kb_txt = requests.get(f'{BASE}/api/kb/doc/'+fname).text
 test('KB doc detail', len(kb_txt)>100, f'{len(kb_txt)} chars')
 
-# ==========================================
 print()
 print('=== F1: 对话式学习画像(>=6维度) ===')
 sid = 'f1-'+str(int(time.time()))
@@ -80,7 +78,6 @@ test('Style filled', s not in ('待了解','','None'), str(s))
 test('Natural dialog', True, 'conversational not form')
 test('Dynamic update', profile.get('_all_asked')==True or len(ak)>=6)
 
-# ==========================================
 print()
 print('=== F2: 多智能体资源生成(>=5种) ===')
 sid2 = 'f2-'+str(int(time.time()))
@@ -101,7 +98,6 @@ test('5+ resource types', count>=5, f'{count} types')
 exs = res.get('exercises', [])
 test('Exercise count dynamic', len(exs) >= 3, f'{len(exs)} exercises')
 
-# ==========================================
 print()
 print('=== F3: 个性化学习路径 ===')
 sid3 = 'f3-'+str(int(time.time()))
@@ -123,7 +119,6 @@ first_chs = phases[0].get('chapters',[]) if phases else []
 test('Chapters in phase1 or prep phase', len(first_chs)>0 or (len(phases)>0 and '预备' in phases[0].get('title','')), str(first_chs))
 test('Not 16-chapter list', len(phases) < 16 if phases else False, f'{len(phases)} phases')
 
-# ==========================================
 print()
 print('=== F4: 智能辅导答疑 ===')
 sid4 = 'f4-'+str(int(time.time()))
@@ -141,7 +136,6 @@ d = chat('今天天气怎么样', sid4b)
 c2 = d.get('content','')
 test('Off-topic rejected', '知识库' in c2 or '机器学习' in c2, c2[:60])
 
-# ==========================================
 print()
 print('=== F5: 学习效果评估 ===')
 sid5 = 'f5-'+str(int(time.time()))
@@ -176,7 +170,6 @@ test('Mastery updates', rr.get('mastery_updates') is not None)
 test('Weakness feedback', rr.get('updated_weaknesses') is not None)
 print(f'  score={rr.get("score")} correct={rr.get("correct")}/{rr.get("total")}')
 
-# ==========================================
 print()
 print('=== NF1-NF4: 非功能性需求 ===')
 sft1 = chat('暴力','sft1').get('content','')
@@ -190,7 +183,6 @@ if res.get('ppt_outline'):
 
 test('Session reset', requests.get(f'{BASE}/api/reset?session_id={sid5}').json().get('status')=='ok')
 
-# ==========================================
 print()
 print('='*60)
 print(f'TOTAL: {TOTAL-len(FAILS)}/{TOTAL} passed')

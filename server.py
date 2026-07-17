@@ -31,7 +31,6 @@ async def startup():
     topics = get_available_topics() if is_kb_ready() else []
     print(f"Server ready | Provider: {LLM_PROVIDER} | KB: {is_kb_ready()} | Topics: {topics}")
 
-
 @app.get("/api/health")
 async def health():
     return {
@@ -40,7 +39,6 @@ async def health():
         "kb_ready": is_kb_ready(),
         "topics": get_available_topics() if is_kb_ready() else [],
     }
-
 
 @app.post("/api/chat")
 async def chat(request: Request):
@@ -100,7 +98,6 @@ async def chat(request: Request):
     return StreamingResponse(generate(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
-
 @app.post("/api/export-pptx")
 async def export_pptx(request: Request):
     """导出PPTX文件"""
@@ -118,7 +115,6 @@ async def export_pptx(request: Request):
     fp = export_pptx(ppt_outline, topic)
     return FileResponse(fp, filename=os.path.basename(fp),
                         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation")
-
 
 @app.post("/api/evaluate")
 async def evaluate_exercises(request: Request):
@@ -421,7 +417,6 @@ async def evaluate_exercises(request: Request):
         return {"total": 0, "correct": 0, "score": 0, "results": [],
                 "ai_analysis": f"批改出错：{str(e)[:200]}"}
 
-
 @app.post("/api/render-video")
 async def render_video(request: Request):
     """渲染 Manim 代码为 MP4 视频"""
@@ -515,14 +510,12 @@ async def render_video(request: Request):
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-
 @app.get("/api/reset")
 async def reset(session_id: str = Query("")):
     """重置会话"""
     if session_id and session_id in system.sessions:
         del system.sessions[session_id]
     return {"status": "ok"}
-
 
 @app.get("/api/kb/docs")
 async def list_kb_docs():
@@ -557,7 +550,6 @@ async def list_kb_docs():
                 })
     return {"docs": docs, "total": len(docs)}
 
-
 @app.get("/api/kb/doc/{filename}")
 async def get_kb_doc(filename: str):
     """按文件名获取单篇文档完整内容（纯文本）"""
@@ -571,7 +563,6 @@ async def get_kb_doc(filename: str):
         content = f.read()
     return Response(content=content, media_type="text/plain; charset=utf-8")
 
-
 @app.post("/api/kb/import")
 async def import_kb_docs():
     """从 course_data 文件真正导入到向量库"""
@@ -583,7 +574,6 @@ async def import_kb_docs():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-
 @app.get("/")
 async def index():
     """前端入口"""
@@ -592,14 +582,12 @@ async def index():
         return HTMLResponse(open(html_path, encoding="utf-8").read())
     return HTMLResponse("<h1>static/index.html not found</h1>")
 
-
-# ====== 模型配置 API ======
+# 模型配置 API
 
 @app.get("/api/models")
 async def list_models():
     """模型配置状态：预设服务商 + 已配置的 + 当前激活的"""
     return llm_manager.get_state()
-
 
 @app.post("/api/models/test")
 async def test_model(request: Request):
@@ -612,7 +600,6 @@ async def test_model(request: Request):
     info(f"测试连接 {body.get('service')}: {'成功' if result.get('ok') else result.get('error', '')[:60]}", "models")
     return result
 
-
 @app.post("/api/models/save")
 async def save_model(request: Request):
     """保存服务商配置（密钥单独存 secrets.json）"""
@@ -624,7 +611,6 @@ async def save_model(request: Request):
         info(f"保存模型配置: {body.get('service')} / {body.get('model')}", "models")
     return r
 
-
 @app.post("/api/models/activate")
 async def activate_model(request: Request):
     """切换当前使用的模型，立即生效不用重启"""
@@ -634,19 +620,16 @@ async def activate_model(request: Request):
         info(f"切换模型: {body.get('service')} / {body.get('model')}", "models")
     return r
 
-
 @app.delete("/api/models/{service}")
 async def delete_model(service: str):
     info(f"删除模型配置: {service}", "models")
     return llm_manager.delete_service(service)
 
-
-# ====== 教学模式（Skill）API ======
+# 教学模式（Skill）API
 
 @app.get("/api/skills")
 async def list_skills():
     return {"skills": skill_manager.list_skills()}
-
 
 @app.post("/api/skills")
 async def save_skill(request: Request):
@@ -658,20 +641,17 @@ async def save_skill(request: Request):
         body.get("id", ""), body.get("name", ""), body.get("description", ""),
         triggers, body.get("body", ""))
 
-
 @app.delete("/api/skills/{sid}")
 async def delete_skill(sid: str):
     return skill_manager.delete_skill(sid)
 
-
-# ====== 画像 API ======
+# 画像 API
 
 @app.get("/api/session/{sid}/history")
 async def session_history(sid: str):
     """聊天记录：刷新/重开页面后前端用它恢复对话显示"""
     sess = system.sessions.get(sid) or {}
     return {"history": sess.get("conversation_history") or []}
-
 
 @app.get("/api/profile")
 async def get_profile(session_id: str = ""):
@@ -684,7 +664,6 @@ async def get_profile(session_id: str = ""):
         "resources_history": sess.get("resources_history") or [],
         "phase": sess.get("phase"),
     }
-
 
 @app.post("/api/profile")
 async def update_profile(request: Request):
@@ -723,14 +702,12 @@ async def update_profile(request: Request):
     info(f"画像手动修正 (会话{session_id[:12]})", "profile")
     return {"ok": True, "profile": profile}
 
-
-# ====== 错题本 API ======
+# 错题本 API
 
 @app.get("/api/mistakes")
 async def get_mistakes(session_id: str = ""):
     from utils import mistake_book
     return {"mistakes": mistake_book.list_mistakes(session_id)}
-
 
 @app.post("/api/mistakes/review-quiz")
 async def review_quiz(request: Request):
@@ -765,15 +742,13 @@ async def review_quiz(request: Request):
     info(f"复习卷生成: {len(exercises)}题 (会话{session_id[:12]})", "mistakes")
     return {"ok": True, "exercises": exercises}
 
-
-# ====== 知识图谱 API ======
+# 知识图谱 API
 
 @app.get("/api/kb/graph")
 async def kb_graph():
     """章节依赖图数据，前端用 Mermaid 渲染"""
     from utils.knowledge_graph import get_knowledge_graph
     return get_knowledge_graph().export_graph_data()
-
 
 @app.post("/api/kb/upload")
 async def kb_upload(request: Request):
@@ -807,8 +782,7 @@ async def kb_upload(request: Request):
     except Exception as e:
         return {"ok": False, "error": f"落盘成功但向量化失败: {str(e)[:150]}"}
 
-
-# ====== 每日一练 API ======
+# 每日一练 API
 
 @app.get("/api/daily-quiz")
 async def daily_quiz():
@@ -820,36 +794,30 @@ async def daily_quiz():
     except Exception:
         return {}
 
-
-# ====== 守护进程 API ======
+# 守护进程 API
 
 @app.get("/api/daemon")
 async def daemon_status():
     return daemon.status()
 
-
 @app.post("/api/daemon/start")
 async def daemon_start():
     return daemon.start(system)
-
 
 @app.post("/api/daemon/stop")
 async def daemon_stop():
     return daemon.stop()
 
-
-# ====== 项目设置 API ======
+# 项目设置 API
 
 @app.get("/api/project-settings")
 async def get_project_settings():
     return project_settings.get_settings()
 
-
 @app.post("/api/project-settings")
 async def save_project_settings(request: Request):
     body = await request.json()
     return project_settings.save_settings(body)
-
 
 @app.get("/api/logs")
 async def get_logs(level: str = None, source: str = None, n: int = 100):
@@ -859,7 +827,6 @@ async def get_logs(level: str = None, source: str = None, n: int = 100):
         "sources": get_sources(),
         "logs": get_recent(n, level, source),
     }
-
 
 @app.get("/api/env-check")
 async def env_check(deep: bool = False):
@@ -936,11 +903,9 @@ async def env_check(deep: bool = False):
         "checks": checks,
     }
 
-
 def _sse_event(event_type: str, data: str) -> str:
     """构建SSE事件 —— JSON的话直接放在一行"""
     return f"event: {event_type}\ndata: {data}\n\n"
-
 
 if __name__ == "__main__":
     from utils.logger import info as log_info

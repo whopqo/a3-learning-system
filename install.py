@@ -7,12 +7,10 @@ import os, sys, subprocess
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 MIRROR = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
-
 def step(title):
     print(f"\n{'='*50}")
     print(f"  {title}")
     print(f"{'='*50}")
-
 
 # 1. Python 版本
 step("1/5 Python 版本检查")

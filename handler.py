@@ -16,7 +16,6 @@ from agents.graph import AgentGraph
 from utils.content_safety import check_content_safety
 from rag.engine import message_in_kb_scope
 
-
 class LearningSystem:
     """多智能体学习系统 —— handler 只管消息收发,调度交给 AgentGraph"""
 
@@ -161,9 +160,8 @@ class LearningSystem:
                 if clean: return clean
         return "机器学习基础"
 
-    # ═══════════════════════════════════════════════════
     # 主入口
-    # ═══════════════════════════════════════════════════
+
     def process_message_stream(self, user_message: str,
                                session_id: str = "default") -> Generator[dict, None, None]:
         session = self.ensure_session(session_id)
@@ -276,9 +274,8 @@ class LearningSystem:
         if not session.pop("_skip_routing", None):
             yield {"type":"done","result":result,"metadata":result.get("metadata",{})}
 
-    # ═══════════════════════════════════════════════════
     # 意图分发 → 委托给 AgentGraph
-    # ═══════════════════════════════════════════════════
+
     def _dispatch_intent(self, intent: str, msg: str, session: dict,
                          classification: dict, result: dict):
         profile = session.get("profile") or {}
@@ -315,9 +312,8 @@ class LearningSystem:
             cat = classification.get("category","ml")
             yield from self._handle_chat(msg, session, result, cat)
 
-    # ═══════════════════════════════════════════════════
     # 画像构建
-    # ═══════════════════════════════════════════════════
+
     def _profile_step(self, session: dict, round_num: int, result: dict):
         conv_text = "\n".join([
             f"{'学生' if m['role']=='user' else '系统'}: {m['content'][:300]}"
@@ -393,9 +389,8 @@ class LearningSystem:
             for ch in fb: yield {"type":"text","content":ch}; time.sleep(0.01)
             result["content"] = fb
 
-    # ═══════════════════════════════════════════════════
     # 资源生成 → 委托给 AgentGraph
-    # ═══════════════════════════════════════════════════
+
     def _handle_resource(self, msg: str, session: dict, result: dict, classification: dict = None):
         profile = session.get("profile") or {}
         if classification is None:
@@ -434,9 +429,8 @@ class LearningSystem:
             topic = flat[0]["name"] if flat else "机器学习基础"
         return topic
 
-    # ═══════════════════════════════════════════════════
     # 路径规划
-    # ═══════════════════════════════════════════════════
+
     def _handle_path(self, session: dict, result: dict):
         ctx = {"profile": session.get("profile") or {}}
         yield from self.graph.walk("path", ctx)
@@ -446,9 +440,8 @@ class LearningSystem:
         result["metadata"] = {"learning_path": session["learning_path"]}
         return
 
-    # ═══════════════════════════════════════════════════
     # 辅导答疑 → 委托给 AgentGraph
-    # ═══════════════════════════════════════════════════
+
     def _handle_tutor(self, msg: str, session: dict, result: dict):
         ctx = {
             "_question": msg,
@@ -458,9 +451,8 @@ class LearningSystem:
         result["type"] = "tutoring"
         result["content"] = ctx.get("_tutor_answer","")
 
-    # ═══════════════════════════════════════════════════
     # 学习评估 → 委托给 AgentGraph (含反馈闭环)
-    # ═══════════════════════════════════════════════════
+
     def _handle_evaluate(self, msg: str, session: dict, result: dict):
         exs = (session.get("resources") or {}).get("exercises", [])
         if not exs:
@@ -493,9 +485,8 @@ class LearningSystem:
         result["type"] = "evaluate"
         result["content"] = text
 
-    # ═══════════════════════════════════════════════════
     # 闲聊
-    # ═══════════════════════════════════════════════════
+
     def _handle_chat(self, msg: str, session: dict, result: dict, cat: str):
         conv_text = "\n".join([
             f"{'学生' if m['role']=='user' else '系统'}: {m['content'][:150]}"
@@ -519,7 +510,6 @@ class LearningSystem:
                 temperature=0.7, max_tokens=300)
         for ch in text: yield {"type":"text","content":ch}; time.sleep(0.015)
         result["content"] = text
-
 
 _system: Optional[LearningSystem] = None
 

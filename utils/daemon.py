@@ -143,7 +143,6 @@ class Daemon:
         finally:
             self._running_check = False
 
-
     def _daily_quiz(self):
         """每天自动生成一份针对薄弱点的小练习，存 db/daily_quiz.json"""
         import json
@@ -190,7 +189,6 @@ class Daemon:
                        "exercises": exercises}, f, ensure_ascii=False, indent=2)
         logger.info(f"每日一练已生成: {len(exercises)}题，针对「{topic}」", "daemon")
         self._push_event("daily", f"每日一练已生成（针对 {topic}）")
-
 
 # 全局单例
 daemon = Daemon()

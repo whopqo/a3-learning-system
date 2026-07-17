@@ -47,7 +47,6 @@ function mdKb(t){if(!t)return'';var h=esc(t);h=h.replace(/^### (.+)$/gm,'<h3 sty
 
 function addMsg(role,html){var cs=document.getElementById('chat-scroll');var d=document.createElement('div');d.className='msg '+role;d.innerHTML='<div class="av">'+(role==='user'?'我':'AI')+'</div><div class="bubble">'+html+'</div>';cs.appendChild(d);cs.scrollTop=cs.scrollHeight;}
 
-
 function stopStream(){if(_abortCtrl){_abortCtrl.abort();_abortCtrl=null;}}
 function quickSend(msg){document.getElementById('msg-in').value=msg;send();}
 
@@ -92,7 +91,7 @@ function sse(type,data,b,raw,start){
 
 function updateState(d){if(d.profile)S.profile=d.profile;if(d.resources){S.resources=d.resources;var ok=S.allRes.some(function(x){return x.topic===d.resources.topic&&x.generated_at===d.resources.generated_at;});if(!ok){S.allRes.unshift(d.resources);if(S.allRes.length>50)S.allRes=S.allRes.slice(0,50);}}if(d.learning_path)S.path=d.learning_path;}
 
-// ====== 画像 ======
+// 画像
 function renderProfile(){var el=document.getElementById('profile-el'),p=S.profile;
   if(!p){el.innerHTML='<div class="empty"><h3>画像尚未构建</h3><p>去对话页面聊聊你的学习情况吧</p><button class="btn" onclick="go(\'chat\')">去聊天</button></div>';return;}
   var fd=p.knowledge_foundation||{},completion=S.recs.length?Math.min(S.recs.reduce(function(s,r){return s+(r.correct||0)},0)/Math.max(S.recs.reduce(function(s,r){return s+(r.total||0)},0),1),1):0.5,vals=[parseFloat(fd.math)||0.4,parseFloat(fd.programming)||0.4,parseFloat(fd.ml_prerequisites)||0.4,(p.difficulty_level=='入门'?0.3:p.difficulty_level=='中级'?0.6:0.85),completion];
@@ -150,7 +149,7 @@ async function saveProfileEdit(){var st=document.getElementById('ep-status');
     else st.innerHTML='<span style="color:var(--rust)">'+esc(r.error||'保存失败')+'</span>';
   }catch(e){st.innerHTML='<span style="color:var(--rust)">网络错误</span>';}}
 
-// ====== 学习路径 ======
+// 学习路径
 function renderPath(){var el=document.getElementById('path-el'),lp=S.path;
   if(!lp||((!lp.phases||!lp.phases.length)&&(!lp.steps||!lp.steps.length))){el.innerHTML='<div class="empty"><h3>学习路径尚未规划</h3><p>去聊天让我了解你，帮你规划学习路径</p><button class="btn" onclick="go(\'chat\')">去聊天</button></div>';return;}
   var phases=lp.phases||[],hasPhases=phases.length>0;
@@ -182,7 +181,7 @@ function renderPath(){var el=document.getElementById('path-el'),lp=S.path;
   }
   el.innerHTML=html;}
 
-// ====== 资源库 ======
+// 资源库
 function renderResources(){var el=document.getElementById('resources-el'),all=S.allRes;
   if(!all.length&&!S.resources){el.innerHTML='<div class="empty"><h3>资源库为空</h3><p>去对话页面生成学习资料吧</p><button class="btn" onclick="go(\'chat\')">去聊天</button></div>';return;}
   var tabs=[{k:'all',l:'全部'},{k:'lecture_notes',l:'讲义'},{k:'mind_map',l:'思维导图'},{k:'exercises',l:'练习题'},{k:'reading_materials',l:'阅读材料'},{k:'extended_reading',l:'拓展阅读'},{k:'code_example',l:'代码'},{k:'ppt_outline',l:'PPT'},{k:'video_script',l:'视频'}];
@@ -239,7 +238,7 @@ var _previewPPT={};async function downloadPPTX(topic,outline){var r=S.resources,
 
 async function renderVideo(idx){var d=PD[idx];if(!d||d.type!=='video_script')return;var st=document.getElementById('video-render-status');if(!st)return;st.innerHTML='<div style="display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.82rem"><span class="spin"></span> 渲染中（最长等待3分钟）...</div>';try{var r=await fetch('/api/render-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:String(d.content),topic:d.topic||'动画'})});var ct=r.headers.get('content-type')||'';if(ct.indexOf('application/json')>=0){var ej=await r.json();st.innerHTML='<span style=\"color:var(--rust)\">渲染失败: '+esc(ej.error||ej.detail||'未知错误')+'</span>';return;}if(!r.ok){st.innerHTML='<span style=\"color:var(--rust)\">服务器错误: '+r.status+'</span>';return;}var blob=await r.blob();if(blob.size<5000){var txt=await blob.text();st.innerHTML='<span style=\"color:var(--rust)\">渲染失败: '+(txt.substring?esc(txt.substring(0,200)):esc(String(txt)))+'</span>';return;}var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(d.topic||'动画')+'.mp4';a.click();st.innerHTML='<span style=\"color:var(--sage)\">下载成功！可播放视频</span>';}catch(e){st.innerHTML='<span style=\"color:var(--rust)\">网络错误: '+esc(String(e))+'</span>';}}
 
-// ====== 知识库 ======
+// 知识库
 function renderKnowledge(){var el=document.getElementById('knowledge-el');el.innerHTML='<div class="ph"><h2>知识库管理</h2><p>机器学习课程教材 · '+KD.length+' 个文档</p></div><div class="chart-box"><h4 style="display:flex;justify-content:space-between;align-items:center">章节依赖图（绿色 = 已掌握，箭头 = 先学→后学）<button class="btn-sm" onclick="showGraphBig()">🔍 放大查看</button></h4><div id="kb-graph" style="overflow-x:auto;color:var(--muted);font-size:.85rem">加载中...</div></div><div class="kb-header"><button class="btn-sm" onclick="document.getElementById(\'kb-form\').classList.toggle(\'show\')">+ 添加资料到知识库</button></div><div class="kb-add-form" id="kb-form"><input type="text" id="kb-title" placeholder="标题（会作为文档名）"><textarea id="kb-content" placeholder="粘贴资料正文（至少30字），或用下面的按钮选择 txt/md 文件"></textarea><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input type="file" id="kb-file" accept=".txt,.md" onchange="readKBFile(this)" style="font-size:.78rem"><button class="btn-sm" onclick="addKBItem(this)">入库（约需1分钟向量化）</button><span id="kb-up-status" style="font-size:.78rem;color:var(--muted)"></span></div></div><div class="kb-grid" id="kb-grid"></div>';renderKBGrid();loadKBGraph();}
 function readKBFile(inp){var f=inp.files&&inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){document.getElementById('kb-content').value=r.result;if(!document.getElementById('kb-title').value)document.getElementById('kb-title').value=f.name.replace(/\.(txt|md)$/,'');};r.readAsText(f,'utf-8');}
 async function loadKBGraph(){var el=document.getElementById('kb-graph');if(!el)return;
@@ -276,7 +275,7 @@ async function addKBItem(btn){var t=document.getElementById('kb-title').value.tr
   btn.disabled=false;}
 async function showKbContent(idx){var items=KD.length?KD:S.kbItems;var it=items[idx];if(!it)return;var mc=document.getElementById('modal-content');mc.innerHTML='<div style=\"text-align:center;padding:40px\"><span class=\"spin\"></span> 加载中...</div>';M.classList.add('show');try{var r=await fetch('/api/kb/doc/'+encodeURIComponent(it.filename));if(!r.ok){mc.innerHTML='<p>加载失败: '+r.status+'</p>';return;}var full=await r.text();var h='<h2>'+esc(it.title)+'</h2><div style=\"color:var(--muted);font-size:.82rem;margin-bottom:12px\">'+esc(it.source||'')+' | '+(it.line_count||'?')+'行 | '+(it.size_chars||'?')+'字</div><div style=\"line-height:1.9;font-size:.9rem;max-height:60vh;overflow-y:auto;padding:16px 20px;background:var(--paper);border-radius:8px\">'+mdKb(full)+'</div>';mc.innerHTML=h;}catch(e){mc.innerHTML='<p>网络错误: '+esc(String(e))+'</p>';}}
 
-// ====== 学习记录 ======
+// 学习记录
 function renderRecords(){var el=document.getElementById('records-el'),recs=S.recs,p=S.profile||{};
   var gaps=p.struggling_topics||[],done=p.mastered_topics||[];
   var tq=recs.reduce(function(s,r){return s+(r.total||0)},0),tc=recs.reduce(function(s,r){return s+(r.correct||0)},0),acc=tq?Math.round(tc/tq*100):0,days=new Set(recs.map(function(r){return r.date})).size;
@@ -314,7 +313,7 @@ function renderRecords(){var el=document.getElementById('records-el'),recs=S.rec
 
   setTimeout(function(){drawChart('sc',recs);},150);loadDailySlot();loadMistakeSlot();}
 
-// ====== 每日一练 + 错题本 ======
+// 每日一练 + 错题本
 function openQuiz(exs,topic){if(!exs||!exs.length)return;PD.push({type:'exercises',content:exs,topic:topic});showPreview(PD.length-1);}
 var _dailyEx=null;
 async function loadDailySlot(){var el=document.getElementById('daily-quiz-slot');if(!el)return;
@@ -335,8 +334,7 @@ async function genReviewQuiz(btn){var old=btn.textContent;btn.textContent='生�
   }catch(e){alert('网络错误');}
   btn.textContent=old;btn.disabled=false;}
 
-
-// ====== Charts（ECharts：悬停看数值、动画、渐变） ======
+// Charts（ECharts：悬停看数值、动画、渐变）
 function drawRadar(id,vals){var el=document.getElementById(id);if(!el)return;
   if(!window.echarts){el.innerHTML='<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:100px 0">图表库加载失败，检查网络后刷新</div>';return;}
   var names=[['数学','线代/概率论'],['编程','Python代码力'],['ML基础','了解程度'],['难度','学习阶段'],['完成率','做题正确率']];
@@ -367,7 +365,7 @@ function drawChart(id,recs){var el=document.getElementById(id);if(!el)return;
       markLine:{silent:true,symbol:'none',lineStyle:{color:'#4a7c59',type:'dashed'},label:{formatter:'及格线',fontSize:10},data:[{yAxis:60}]}}]
   });}
 
-// ====== 会话恢复：刷新页面后从服务端拿回画像/路径/资源 ======
+// 会话恢复：刷新页面后从服务端拿回画像/路径/资源
 async function loadHistory(){var cs=document.getElementById('chat-scroll');
   try{var d=await(await fetch('/api/session/'+encodeURIComponent(S.sid)+'/history')).json();
     var h=d.history||[];if(!h.length)return;  // 没历史就保留欢迎语
@@ -382,7 +380,7 @@ async function restoreSession(){try{var d=await(await fetch('/api/profile?sessio
   else if(d.resources&&!S.allRes.length)S.allRes=[d.resources];
 }catch(e){}}
 
-// ====== 对话模型选择器 ======
+// 对话模型选择器
 function loadModelSel(){fetch('/api/models').then(function(r){return r.json()}).then(function(d){
   var sel=document.getElementById('model-sel');if(!sel)return;
   var act=d.active||{};var h='<option value="">默认 · '+esc(act.model||act.service||'')+'</option>';
@@ -400,7 +398,7 @@ function loadModelSel(){fetch('/api/models').then(function(r){return r.json()}).
 function pickModel(v){if(!v){S.chatModel=null;try{localStorage.removeItem('a3_model');}catch(e){}return;}
   var p=v.split('||');S.chatModel={service:p[0],model:p[1]||''};try{localStorage.setItem('a3_model',JSON.stringify(S.chatModel));}catch(e){}}
 
-// ====== 聊天教学模式选择 ======
+// 聊天教学模式选择
 var SKL=[];
 function loadSkills(cb){fetch('/api/skills').then(function(r){return r.json()}).then(function(d){SKL=d.skills||[];
   // 清掉已被删除的勾选
@@ -419,7 +417,7 @@ function toggleSkillPop(){var p=document.getElementById('skill-pop');
 function toggleSkill(id,on){if(on){if(S.skills.indexOf(id)<0)S.skills.push(id);}else{S.skills=S.skills.filter(function(x){return x!==id;});}
   try{localStorage.setItem('a3_skills',JSON.stringify(S.skills));}catch(e){}updateSkillBtn();}
 
-// ====== 设置页 ======
+// 设置页
 var SET={tab:'models',data:null,editSvc:null,timer:null,testModels:null};
 function renderSettings(){var el=document.getElementById('settings-el');
   var tabs=[{k:'models',l:'模型配置'},{k:'skills',l:'教学模式'},{k:'project',l:'项目设置'},{k:'env',l:'环境检测'},{k:'logs',l:'系统日志'},{k:'daemon',l:'守护进程'}];

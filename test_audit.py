@@ -32,7 +32,6 @@ def t(name, cond, detail=''):
         print(f'  [FAIL] {name}  ({detail})')
     sys.stdout.flush()
 
-# ===========================================================
 print('='*60)
 print('A3 全功能审查测试')
 print('='*60)

@@ -8,7 +8,6 @@ Agent 有向图引擎 —— 多智能体协同的真正运行时
 import re, time
 from typing import Dict, Any, Optional, Generator
 
-
 class GraphNode:
     """图节点"""
     def __init__(self, name: str, agent: Any,
@@ -17,7 +16,6 @@ class GraphNode:
         self.agent = agent
         self.on_pass = on_pass
         self.on_fail = on_fail
-
 
 class AgentGraph:
     """多智能体协同有向图 —— 运行时引擎
@@ -49,9 +47,8 @@ class AgentGraph:
         self.nodes["evaluate"] = GraphNode("evaluate", self.sys.evaluate_agent,
                                            on_pass="done", on_fail="resource")
 
-    # ═══════════════════════════════════════════════════
     # 核心: 沿图行走，流式输出 SSE 事件
-    # ═══════════════════════════════════════════════════
+
     def walk(self, start: str, ctx: dict) -> Generator[dict, None, dict]:
         """从 start 节点出发，走到 done。yield SSE事件，返回最终ctx。
 
@@ -106,9 +103,8 @@ class AgentGraph:
         ctx["_done"] = True
         return ctx
 
-    # ═══════════════════════════════════════════════════
     # 节点执行
-    # ═══════════════════════════════════════════════════
+
     def _run_node(self, node: GraphNode, ctx: dict) -> Generator[dict, None, None]:
         yield {"type":"progress","step":1,"total":2,"label":f"{node.name}工作中…"}
 
@@ -304,9 +300,8 @@ class AgentGraph:
             text += f"\n{evaluation['suggestion']}"
         yield {"type":"text","content":text}
 
-    # ═══════════════════════════════════════════════════
     # 质量门
-    # ═══════════════════════════════════════════════════
+
     def _check_node(self, node: GraphNode, ctx: dict) -> tuple:
         if node.name == "profile":
             asked = (ctx.get("profile") or {}).get("_asked_dims",[])
@@ -329,9 +324,8 @@ class AgentGraph:
 
         return (True, "")
 
-    # ═══════════════════════════════════════════════════
     # 辅助
-    # ═══════════════════════════════════════════════════
+
     def _pick_fallback_topic(self, ctx: dict) -> str | None:
         """从学习路径找下一个未尝试的章节名"""
         tried = set(ctx.get("_tried_topics", []) or [])
