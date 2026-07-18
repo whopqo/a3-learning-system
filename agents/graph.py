@@ -231,7 +231,7 @@ class AgentGraph:
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import contextvars
         idx = 0
-        t0 = time.time()
+        # t0 removed
         with ThreadPoolExecutor(max_workers=8) as pool:
             futures = {}
             for key, label, gen_fn in tasks:
@@ -242,8 +242,7 @@ class AgentGraph:
             for f in as_completed(futures):
                 key, label = futures[f]
                 idx += 1
-                elapsed = int(time.time() - t0)
-                yield {"type":"progress","step":idx+1,"total":total,"label":f"已完成{label} ({idx}/{len(tasks)}) {elapsed}s"}
+                yield {"type":"progress","step":idx+1,"total":total,"label":f"已完成{label} ({idx}/{len(tasks)})"}
                 try:
                     resources[key] = f.result()
                 except Exception:
