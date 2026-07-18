@@ -566,6 +566,6 @@ async function renderDaemonSet(){var bd=document.getElementById('set-body');
 async function daemonCtl(act){try{var r=await(await fetch('/api/daemon/'+act,{method:'POST'})).json();if(!r.ok&&r.error)alert(r.error);}catch(e){}renderDaemonSet();}
 
 async function resetAll(){
-try{await fetch('/api/reset?session_id='+S.sid);}catch(e){}S.sid='u'+Date.now();S.profile=null;S.resources=null;S.path=null;S.recs=[];S.allRes=[];S.quizResults={};try{localStorage.setItem('a3_sid',S.sid);localStorage.removeItem('a3_recs');localStorage.removeItem('a3_quiz');}catch(e){};document.getElementById('chat-scroll').innerHTML='';go('chat');location.reload();}
+try{await fetch('/api/reset?session_id='+S.sid);}catch(e){}S.sid='u'+Date.now();S.profile=null;S.resources=null;S.path=null;S.recs=[];S.allRes=[];S.quizResults={};S.skills=[];S.chatModel=null;try{localStorage.setItem('a3_sid',S.sid);localStorage.removeItem('a3_recs');localStorage.removeItem('a3_quiz');localStorage.removeItem('a3_model');localStorage.removeItem('a3_skills');}catch(e){};document.getElementById('chat-scroll').innerHTML='';go('chat');location.reload();}
 function closeModal(){M.classList.remove('show');M.querySelector('.modal-inner').style.maxWidth='';}
 M.onclick=function(e){if(e.target===this)closeModal();};
