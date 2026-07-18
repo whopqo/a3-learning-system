@@ -67,12 +67,15 @@ async def chat(request: Request):
         import queue as _queue
         import threading
         q = _queue.Queue()
+        cancel_ev = threading.Event()  # 用户点停止/断开连接时通知工作线程别再干了
         # 同步处理在独立线程跑，主循环负责实时发送——再也不用等LLM调用回来才flush
         def _worker():
             try:
                 if used:
                     q.put(("skills", json.dumps([s["name"] for s in used], ensure_ascii=False)))
                 for event in system.process_message_stream(message, session_id):
+                    if cancel_ev.is_set():
+                        break  # 客户端已断开，省下后面的LLM调用
                     if event["type"] in ("text", "progress", "error"):
                         q.put((event["type"], event.get("content") if event["type"] == "text"
                                else (str(event["content"]) if event["type"] == "error"
@@ -103,10 +106,14 @@ async def chat(request: Request):
         t.start()
 
         while True:
-            item = await asyncio.to_thread(q.get)
-            if item is None:
+            try:
+                item = await asyncio.to_thread(q.get)
+                if item is None:
+                    break
+                yield _sse_event(item[0], item[1])
+            except GeneratorExit:
+                cancel_ev.set()  # 用户点停止/刷新页面 — 通知后台线程停手
                 break
-            yield _sse_event(item[0], item[1])
 
     return StreamingResponse(generate(), media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
