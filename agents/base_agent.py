@@ -86,7 +86,12 @@ class BaseAgent(ABC):
                 self.total_calls += 1
                 if resp.usage:
                     self.total_tokens += resp.usage.total_tokens
-                return resp.choices[0].message.content
+                raw = resp.choices[0].message.content or ""
+                # 推理型模型把思考过程裹在<think>...</think>里，整个块连带内容删掉
+                import re as _re
+                raw = _re.sub(r'<think>[\s\S]*?</think>', '', raw)
+                raw = _re.sub(r'</?think>', '', raw)  # 残留的未闭合标记也清掉
+                return raw
             except Exception as e:
                 last_error = e
                 err_str = str(e)

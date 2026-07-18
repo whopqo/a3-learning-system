@@ -32,7 +32,7 @@ PRESETS = {
     "openrouter": {"label": "OpenRouter", "base_url": "https://openrouter.ai/api/v1",
                    "known_models": ["openai/gpt-4o-mini", "anthropic/claude-sonnet-4.5"]},
     "ollama": {"label": "Ollama本地", "base_url": "http://localhost:11434/v1",
-               "known_models": ["qwen2.5:7b", "llama3.1:8b"], "no_key": True},
+               "known_models": [], "no_key": True},
     "custom": {"label": "自定义接口", "base_url": "", "known_models": []},
 }
 
@@ -163,8 +163,8 @@ def get_state() -> dict:
             "has_key": bool(key),
             "key_preview": (key[:6] + "***") if key else "",
             "model": (cfg or {}).get("model", ""),
-            # 拉取过真实列表就用真实的，没拉过才用内置兜底
-            "known_models": (cfg or {}).get("_fetched_models") or preset["known_models"],
+            # 拉取过真实列表就用真实的，没拉过才用内置兜底。Ollama本地模型要自己pull
+            "known_models": (cfg or {}).get("_fetched_models") or ([] if preset.get("no_key") else preset["known_models"]),
             "no_key": preset.get("no_key", False),
             "api_format": _get_api_format(sid),
         })

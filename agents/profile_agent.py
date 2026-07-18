@@ -376,21 +376,21 @@ class ProfileAgent(BaseAgent):
         if not answer:
             return
         dim_kws = {
-            "ml": ["机器学习", "ml", "算法", "没学过", "零基础"],
-            "prog": ["python", "编程", "代码", "程序"],
-            "math": ["数学", "线代", "概率", "微积分", "高数"],
-            "goal": ["目标", "考研", "工作", "入门", "考试", "兴趣", "就业"],
-            "style": ["视频", "看书", "动手", "实践", "喜欢"],
+            "ml": ["机器学习", "ml", "算法", "没学过", "零基础", "基础比较薄弱"],
+            "prog": ["python", "编程", "代码", "程序", "python和", "和python"],
+            "math": ["数学"],
+            "goal": ["目标", "考研", "工作", "入门", "考试", "兴趣", "就业", "为了"],
+            "style": ["视频", "看书", "动手", "实践", "喜欢", "习惯", "风格"],
             "time": ["小时", "每周", "每天", "时间"],
             "weak": ["薄弱", "难", "不懂", "说不上来", "不知道哪里"],
             "lang": ["比喻", "严谨", "通俗", "学术", "生动", "讲解"],
         }
         snippet = answer
         if len(answer) > 30:
-            # 按逗号句号切片，挑出含该维度关键词的片段
             import re as _re
             parts = [p.strip() for p in _re.split(r'[，。；,;]', answer) if p.strip()]
             kws = dim_kws.get(dim, [])
+            # 长词优先匹配（"数学比较薄弱"比单字"数学"更精确），prog/math都有匹配时各归各的
             hits = [p for p in parts if any(k in p.lower() for k in kws)]
             if hits:
                 snippet = "，".join(hits[:2])
