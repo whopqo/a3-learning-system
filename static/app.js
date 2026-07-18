@@ -434,9 +434,10 @@ async function renderModelSet(){var bd=document.getElementById('set-body');
   var act=SET.data.active||{};
   var h='<div class="banner ok">当前使用：'+esc(act.service||'?')+' / '+esc(act.model||'?')+'（切换立即生效，不用重启）</div>';
   h+='<div class="svc-grid">'+SET.data.services.map(function(s){
-    var cls='svc-card'+(s.configured||s.has_key?' cfg':'')+(s.id===act.service?' act':'');
-    var meta=s.has_key?('密钥 '+esc(s.key_preview)):(s.no_key?'本地运行，不需要密钥':'未配置密钥');
-    return'<div class="'+cls+'" onclick="SET.editSvc=\''+s.id+'\';renderSettings()"><div class="sname"><span class="sdot2"></span>'+esc(s.label)+(s.id===act.service?' <span style="font-size:.68rem;color:var(--sage)">使用中</span>':'')+'</div><div class="smeta">'+meta+(s.model?'<br>模型: '+esc(s.model):'')+'</div></div>';}).join('')+'</div>';
+    var cls='svc-card'+(s.id===act.service?' act':'')+(s.configured||s.has_key?' cfg':'');
+    var tag=s.configured||s.has_key?'<span style="font-size:.64rem;background:#eef5ef;color:#4a7c59;padding:1px 7px;border-radius:10px;margin-left:6px">已配置</span>':'<span style="font-size:.64rem;color:var(--muted);margin-left:6px">未配置</span>';
+    var meta=s.has_key?('密钥 '+esc(s.key_preview)):(s.no_key?'本地运行，不需要密钥':'');
+    return'<div class="'+cls+'" onclick="SET.editSvc=\''+s.id+'\';renderSettings()"><div class="sname"><span class="sdot2"></span>'+esc(s.label)+tag+(s.id===act.service?' <span style="font-size:.64rem;background:#f4f9f5;color:#4a7c59;padding:1px 7px;border-radius:10px;margin-left:2px">使用中</span>':'')+'</div><div class="smeta">'+meta+(s.model?'模型: '+esc(s.model):'')+'</div></div>';}).join('')+'</div>';
   bd.innerHTML=h;
   if(SET.editSvc)bd.insertAdjacentHTML('beforeend',svcFormHTML(SET.editSvc));}
 
