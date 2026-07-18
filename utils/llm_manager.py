@@ -159,9 +159,10 @@ def get_state() -> dict:
             "id": sid,
             "label": preset["label"],
             "base_url": (cfg or {}).get("base_url") or preset["base_url"],
-            "configured": cfg is not None,
-            "has_key": bool(key),
-            "key_preview": (key[:6] + "***") if key else "",
+            # no_key 的服务（Ollama）不算"已配置"——用户没主动填东西就不绿
+            "configured": cfg is not None and not preset.get("no_key", False),
+            "has_key": bool(key) and not (preset.get("no_key") and not cfg),
+            "key_preview": (key[:6] + "***") if (key and not preset.get("no_key")) else "",
             "model": (cfg or {}).get("model", ""),
             # 拉取过真实列表就用真实的，没拉过才用内置兜底。Ollama本地模型要自己pull
             "known_models": (cfg or {}).get("_fetched_models") or ([] if preset.get("no_key") else preset["known_models"]),

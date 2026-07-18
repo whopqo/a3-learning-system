@@ -396,7 +396,9 @@ function loadModelSel(){fetch('/api/models').then(function(r){return r.json()}).
     if(sel.querySelector('option[value="'+v.replace(/"/g,'\\"')+'"]'))sel.value=v;else{S.chatModel=null;try{localStorage.removeItem('a3_model');}catch(e){}}}
 }).catch(function(){});}
 function pickModel(v){if(!v){S.chatModel=null;try{localStorage.removeItem('a3_model');}catch(e){}return;}
-  var p=v.split('||');S.chatModel={service:p[0],model:p[1]||''};try{localStorage.setItem('a3_model',JSON.stringify(S.chatModel));}catch(e){}}
+  var p=v.split('||');S.chatModel={service:p[0],model:p[1]||''};try{localStorage.setItem('a3_model',JSON.stringify(S.chatModel));}catch(e){}
+  // 同步全局激活状态——设置页不再出现"明明在聊天框切了模型，设置页还是老模型"的错位
+  fetch('/api/models/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service:p[0],model:p[1]||''})}).catch(function(){});}
 
 // 聊天教学模式选择
 var SKL=[];
