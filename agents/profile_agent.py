@@ -371,11 +371,31 @@ class ProfileAgent(BaseAgent):
 
     @staticmethod
     def _record_evidence(profile: dict, dim: str, answer: str):
-        """记下每个维度是根据学生哪句话判断的，画像可解释可追溯"""
+        """记下每个维度是根据学生哪句话判断的。长句只截取和该维度相关的片段，
+        不然快速开始一句话答8个维度，每个维度的依据都是同一大段话"""
         if not answer:
             return
+        dim_kws = {
+            "ml": ["机器学习", "ml", "算法", "没学过", "零基础"],
+            "prog": ["python", "编程", "代码", "程序"],
+            "math": ["数学", "线代", "概率", "微积分", "高数"],
+            "goal": ["目标", "考研", "工作", "入门", "考试", "兴趣", "就业"],
+            "style": ["视频", "看书", "动手", "实践", "喜欢"],
+            "time": ["小时", "每周", "每天", "时间"],
+            "weak": ["薄弱", "难", "不懂", "说不上来", "不知道哪里"],
+            "lang": ["比喻", "严谨", "通俗", "学术", "生动", "讲解"],
+        }
+        snippet = answer
+        if len(answer) > 30:
+            # 按逗号句号切片，挑出含该维度关键词的片段
+            import re as _re
+            parts = [p.strip() for p in _re.split(r'[，。；,;]', answer) if p.strip()]
+            kws = dim_kws.get(dim, [])
+            hits = [p for p in parts if any(k in p.lower() for k in kws)]
+            if hits:
+                snippet = "，".join(hits[:2])
         ev = profile.get("_evidence") or {}
-        ev[dim] = answer[:80]
+        ev[dim] = snippet[:80]
         profile["_evidence"] = ev
 
     def generate_guide_question(self, profile: dict, round_num: int) -> str | None:

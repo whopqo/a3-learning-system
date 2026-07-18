@@ -326,6 +326,106 @@ class LearningSystem:
                 return nm
         return topic
 
+    @staticmethod
+    def _build_path_analysis(profile: dict, lp: dict) -> str:
+        """根据画像数据生成个性化路径分析——解释为什么这么规划，给具体建议。纯数据驱动，不调LLM"""
+        fd = profile.get("knowledge_foundation", {}) or {}
+        ml = fd.get("ml_prerequisites", 0.4)
+        prog = fd.get("programming", 0.4)
+        math = fd.get("math", 0.4)
+        avg = (ml + prog + math) / 3
+        goal = (profile.get("short_term_goal") or "").strip()
+        style = (profile.get("cognitive_style") or "").strip()
+        time_str = (profile.get("time_per_week") or "").strip()
+        weak = profile.get("struggling_topics", []) or []
+        lang = (profile.get("language_style") or "").strip()
+        phases = lp.get("phases", []) or []
+        overview = (lp.get("overview") or lp.get("description") or "").strip()
+
+        lines = [""]
+        # 画像摘要
+        lines.append("## 你的学习画像")
+        base_level = "入门" if avg < 0.35 else ("中等" if avg < 0.65 else "进阶")
+        ml_desc = {"入门": "对机器学习还不太了解", "中等": "有一定基础概念", "进阶": "基础比较扎实"}.get(base_level, "")
+        lines.append(f"综合来看，你属于**{base_level}**水平——{ml_desc}。")
+        dims = []
+        if ml < 0.35: dims.append("机器学习基础偏弱，需要从最基本的概念开始")
+        elif ml < 0.65: dims.append("对 ML 有一定了解，可以在已有基础上拓展")
+        else: dims.append("ML 基础不错，可以学得更深更快")
+        if prog < 0.35: dims.append("编程还需要锻炼，前期少写代码多理解概念")
+        elif prog < 0.65: dims.append("有一定编程能力，可以边学边写")
+        else: dims.append("编程功底扎实，可以多动手实践")
+        if math < 0.35: dims.append("数学基础较弱，公式推导部分会尽量用通俗语言替代")
+        elif math < 0.65: dims.append("数学底子够用，需要时再深入推导")
+        else: dims.append("数学基础扎实，推导部分可以放心展开")
+        for d in dims: lines.append(f"- {d}")
+        if goal: lines.append(f"- 你的目标是**{goal}**，路径规划会围绕这个方向展开")
+        if time_str: lines.append(f"- 每周能投入**{time_str}**，学习节奏已经根据这个做了调整")
+        if style: lines.append(f"- 偏好**{style}**，后续资料会适配你的学习风格")
+        if lang: lines.append(f"- 讲解风格偏**{lang}**，讲义和答疑会按这个来")
+        if weak: lines.append(f"- 薄弱环节：**{'、'.join(weak[:5])}**，相关章节会重点加强")
+
+        # 路径分析
+        lines.append("")
+        lines.append(f"## 学习路径详解（共 {len(phases)} 个阶段）")
+        if overview:
+            lines.append(f"> {overview[:300]}")
+            lines.append("")
+
+        from utils.knowledge_graph import get_knowledge_graph
+        chapter_map = {}
+        for n in get_knowledge_graph().get_all_nodes():
+            chapter_map[n.get("name", "")] = n
+
+        for p in phases[:6]:
+            pn = p.get("phase", "?")
+            title = p.get("title", "")
+            diff = p.get("difficulty", "中等")
+            dur = p.get("duration", "")
+            goal_text = p.get("goal", "")
+            chs = p.get("chapters", []) or []
+            tasks = p.get("tasks", []) or []
+
+            emoji = {"入门": "🟢", "中等": "🟡", "进阶": "🔴"}.get(diff, "⚪")
+            lines.append(f"### {emoji} 阶段{pn}：{title}")
+            lines.append(f"**时长**：{dur}　**难度**：{diff}")
+            if goal_text: lines.append(f"**目标**：{goal_text}")
+            if chs:
+                chs_display = []
+                for c in chs[:5]:
+                    info = chapter_map.get(c, {})
+                    h = info.get("hours", "")
+                    chs_display.append(f"{c}{'（约'+str(h)+'h）' if h else ''}")
+                lines.append(f"**涵盖**：{' → '.join(chs_display)}")
+            # 为什么这一阶段的顺序如此——基于画像分析
+            why = []
+            if pn == 1 and chs and avg < 0.4:
+                why.append("你的基础比较薄弱，所以从这个阶段开始让你先建立整体认知，而不是直接跳进算法细节")
+            elif pn == 1 and chs and avg >= 0.7:
+                why.append("你的基础不错，这个阶段快速过一遍建立框架，不需要花太多时间")
+            if any(w in (chs or []) for w in (weak or [])):
+                why.append(f"这个阶段包含你提到过的薄弱点，会重点帮你攻克")
+            if diff == "入门": why.append("难度设定为入门级，保证你能跟上节奏")
+            elif diff == "进阶": why.append("你的基础够强，直接按进阶难度来，不浪费时间")
+            if why:
+                for w in why: lines.append(f"> 💡 {w}")
+            if tasks:
+                lines.append("**动手任务**：")
+                for t in tasks[:3]: lines.append(f"- {t}")
+            lines.append("")
+
+        lines.append("---")
+        lines.append(f"📌 **建议**：{'如果某个阶段学起来轻松，可以适当加速跳过部分内容' if avg >= 0.55 else '不要着急跳阶段，前面的基础打牢了后面的概念会自然变简单'}")
+        lines.append("🎯 路径页可以看到完整计划和各阶段的章节标签（点击可以直接生成那章的资料）")
+        tips = []
+        if style == "动手型": tips.append("按阶段卡片里的动手任务代码来实践效果最好")
+        if style == "视觉型": tips.append("多看看知识库里的依赖图和思维导图来理解知识结构")
+        if weak: tips.append(f"「{'」「'.join(weak[:3])}」这些薄弱点，每天练一练会持续帮你补强")
+        if tips:
+            lines.append("💡 学习小建议：")
+            for t in tips: lines.append(f"- {t}")
+        return "\n".join(lines)
+
     def _dispatch_intent(self, intent: str, msg: str, session: dict,
                          classification: dict, result: dict):
         profile = session.get("profile") or {}
@@ -388,26 +488,22 @@ class LearningSystem:
             yield {"type":"progress","step":1,"total":3,"label":"画像收集完毕，开始规划路径…"}
             ctx = {"profile": profile_new}
             yield from self.graph.walk("path", ctx)
-            yield {"type":"progress","step":2,"total":3,"label":"路径规划完成，正在生成学习资料…"}
+            yield {"type":"progress","step":2,"total":3,"label":"路径已规划，准备生成资料…"}
 
             lp = ctx.get("learning_path", {})
             session["learning_path"] = lp
             phases = lp.get("phases", [])
             first = self._pick_first_chapter(lp, profile_new)
 
-            text = f"对你了解得差不多了!\n\n根据你的画像定制了个性化学习路径,共 **{len(phases)} 个阶段**:\n\n"
-            for p in phases[:5]:
-                e = {"入门":"[入门]","中等":"[中等]","进阶":"[进阶]"}.get(p.get("difficulty","中等"),"")
-                chs = p.get("chapters",[])
-                text += f"{e} 阶段{p.get('phase','?')}: {p.get('title','')} ({p.get('duration','')})\n"
-                if chs: text += f"   涵盖: {'、'.join(chs[:3])}\n"
-            text += f"\n正在为你生成「{first}」的学习资料…"
+            # 用画像数据生成个性化路径分析（不调LLM，秒出）
+            text = self._build_path_analysis(profile_new, lp)
             for ch in text: yield {"type":"text","content":ch}; time.sleep(0.01)
 
             res_ctx = {"profile": profile_new, "_topic": first, "_session": session, "learning_path": lp}
             yield from self.graph.walk("resource", res_ctx)
-            text += "\n\n---\n学习资料已生成。点击上方标签页查看完整信息：\n「画像」查看你的学习特征 | 「路径」查看阶段式学习计划 | 「资源库」查看全部8种学习资料 | 「知识库」浏览课程教材 | 「记录」追踪练习成绩"
-            for ch in text: yield {"type":"text","content":ch}; time.sleep(0.01)
+            tail = f"\n\n---\n「{first}」的学习资料已生成。点击上方标签页查看：\n「画像」学习特征 | 「路径」阶段计划 | 「资源库」全部8种资料 | 「记录」练习成绩"
+            for ch in tail: yield {"type":"text","content":ch}; time.sleep(0.01)
+            text += tail
             result["type"] = "profile_ready"
             result["content"] = text
             result["metadata"] = {"profile":profile_new,"learning_path":lp,"resources":res_ctx.get("resources")}
